@@ -45,9 +45,11 @@ cp .env.local.example .env.local
 
 4. Fill in your environment variables in `.env.local`:
    - Airtable Personal Access Token
-   - Supabase URL and keys
+   - Supabase URL and keys (including SERVICE_ROLE_KEY for ingestion)
    - Jibble API credentials
-   - Resend API key
+   - Resend API key (for Phase 8)
+
+See `DEPLOYMENT.md` for detailed deployment instructions including Vercel setup.
 
 5. Run the development server:
 ```bash
