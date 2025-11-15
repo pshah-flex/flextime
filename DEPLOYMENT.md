@@ -9,10 +9,18 @@ All code has been pushed to GitHub:
 
 ## Vercel Deployment Setup
 
-### 1. Connect Repository to Vercel
+### 1. Repository Connection Status
 
-If not already connected:
+✅ **Repository is already connected to Vercel**
 
+The repository `pshah-flex/flextime` is connected to your Vercel project. 
+
+To verify or manage the connection:
+1. Go to [Vercel Dashboard](https://vercel.com/dashboard)
+2. Select your FlexTime project
+3. Go to **Settings** → **Git** to view connection details
+
+**If you need to reconnect:**
 1. Go to [Vercel Dashboard](https://vercel.com/dashboard)
 2. Click "Add New" → "Project"
 3. Import Git Repository → Select `pshah-flex/flextime`
