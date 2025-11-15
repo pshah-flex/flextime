@@ -35,53 +35,79 @@ To verify or manage the connection:
 
 Add the following environment variables in Vercel Dashboard:
 
-#### Supabase
-```
-NEXT_PUBLIC_SUPABASE_URL=https://xegtayaaifuxepntloct.supabase.co
-NEXT_PUBLIC_SUPABASE_ANON_KEY=eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InhlZ3RheWFhaWZ1eGVwbnRsb2N0Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3NjMwNzk5NzQsImV4cCI6MjA3ODY1NTk3NH0.CE5bGrgKwChYMbyG6GqCi77Rp3P8uH43kyHS0_TXumo
-SUPABASE_SERVICE_ROLE_KEY=[Get from Supabase Dashboard → Settings → API → service_role key]
-```
+**Steps to add environment variables:**
+1. Go to [Vercel Dashboard](https://vercel.com/dashboard)
+2. Select your FlexTime project
+3. Go to **Settings** → **Environment Variables**
+4. Add each variable below (click "Add New" for each)
+5. Select **Production**, **Preview**, and **Development** environments (or as needed)
+6. Click "Save" after each variable
 
-#### Jibble API
-```
-JIBBLE_CLIENT_ID=f650b933-9a8b-49f0-8be3-3656230264df
-JIBBLE_CLIENT_SECRET=7QI5ylOE5fNIvRl1fAeLbVLptnAHmAZxCseYoxnf701ruCVT
-JIBBLE_API_URL=https://workspace.prod.jibble.io
-JIBBLE_IDENTITY_URL=https://identity.prod.jibble.io/connect/token
-JIBBLE_TIME_TRACKING_URL=https://time-tracking.prod.jibble.io
-```
+#### Supabase (Required)
 
-#### Airtable
-```
-AIRTABLE_PERSONAL_ACCESS_TOKEN=YOUR_AIRTABLE_PERSONAL_ACCESS_TOKEN
-AIRTABLE_BASE_ID=appvhgZiUha2A1OQg
-```
+| Variable Name | Value |
+|--------------|-------|
+| `NEXT_PUBLIC_SUPABASE_URL` | `https://xegtayaaifuxepntloct.supabase.co` |
+| `NEXT_PUBLIC_SUPABASE_ANON_KEY` | `eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InhlZ3RheWFhaWZ1eGVwbnRsb2N0Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3NjMwNzk5NzQsImV4cCI6MjA3ODY1NTk3NH0.CE5bGrgKwChYMbyG6GqCi77Rp3P8uH43kyHS0_TXumo` |
+| `SUPABASE_SERVICE_ROLE_KEY` | `eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InhlZ3RheWFhaWZ1eGVwbnRsb2N0Iiwicm9sZSI6InNlcnZpY2Vfcm9sZSIsImlhdCI6MTc2MzA3OTk3NCwiZXhwIjoyMDc4NjU1OTc0fQ.FsfvIvpIBegOPmBR7yggHOYbda4-DeGDZm6mskpGjkk` |
+
+#### Jibble API (Required)
+
+| Variable Name | Value |
+|--------------|-------|
+| `JIBBLE_CLIENT_ID` | `f650b933-9a8b-49f0-8be3-3656230264df` |
+| `JIBBLE_CLIENT_SECRET` | `7QI5ylOE5fNIvRl1fAeLbVLptnAHmAZxCseYoxnf701ruCVT` |
+| `JIBBLE_API_URL` | `https://workspace.prod.jibble.io` |
+| `JIBBLE_IDENTITY_URL` | `https://identity.prod.jibble.io/connect/token` |
+| `JIBBLE_TIME_TRACKING_URL` | `https://time-tracking.prod.jibble.io` |
+
+#### Airtable (Required)
+
+| Variable Name | Value |
+|--------------|-------|
+| `AIRTABLE_PERSONAL_ACCESS_TOKEN` | `YOUR_AIRTABLE_PERSONAL_ACCESS_TOKEN` (see Airtable Dashboard) |
+| `AIRTABLE_BASE_ID` | `appvhgZiUha2A1OQg` |
 
 #### Resend (Optional - for Phase 8)
-```
-RESEND_API_KEY=re_i7s2UZLP_L6LLe2Zx6oyUEeB1qXB2ZVD8
-```
 
-#### Vercel Cron (Optional)
-```
-CRON_SECRET=[Generate a secure random string for cron job authentication]
-```
+| Variable Name | Value |
+|--------------|-------|
+| `RESEND_API_KEY` | `re_i7s2UZLP_L6LLe2Zx6oyUEeB1qXB2ZVD8` |
 
-### 3. Getting Supabase Service Role Key
+#### Vercel Cron (Optional - for authentication)
 
-**⚠️ Important**: The service role key is required for database write operations (ingestion).
+Generate a secure random string (you can use: `openssl rand -base64 32` or any password generator):
 
-1. Go to [Supabase Dashboard](https://supabase.com/dashboard/project/xegtayaaifuxepntloct)
-2. Navigate to **Settings** → **API**
-3. Find the **service_role** key (not the anon key)
-4. Copy it and add to Vercel environment variables as `SUPABASE_SERVICE_ROLE_KEY`
+| Variable Name | Value |
+|--------------|-------|
+| `CRON_SECRET` | `+ZNSzfxczVba69V8vnz4QMfMgvqyLD7x9tnci3MZ0fg=` (or generate your own) |
 
-### 4. Deploy
+**Quick Copy-Paste Checklist:**
+
+✅ Add these 10 required variables:
+- `NEXT_PUBLIC_SUPABASE_URL` = `https://xegtayaaifuxepntloct.supabase.co`
+- `NEXT_PUBLIC_SUPABASE_ANON_KEY` = `eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InhlZ3RheWFhaWZ1eGVwbnRsb2N0Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3NjMwNzk5NzQsImV4cCI6MjA3ODY1NTk3NH0.CE5bGrgKwChYMbyG6GqCi77Rp3P8uH43kyHS0_TXumo`
+- `SUPABASE_SERVICE_ROLE_KEY` = `eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InhlZ3RheWFhaWZ1eGVwbnRsb2N0Iiwicm9sZSI6InNlcnZpY2Vfcm9sZSIsImlhdCI6MTc2MzA3OTk3NCwiZXhwIjoyMDc4NjU1OTc0fQ.FsfvIvpIBegOPmBR7yggHOYbda4-DeGDZm6mskpGjkk`
+- `JIBBLE_CLIENT_ID` = `f650b933-9a8b-49f0-8be3-3656230264df`
+- `JIBBLE_CLIENT_SECRET` = `7QI5ylOE5fNIvRl1fAeLbVLptnAHmAZxCseYoxnf701ruCVT`
+- `JIBBLE_API_URL` = `https://workspace.prod.jibble.io`
+- `JIBBLE_IDENTITY_URL` = `https://identity.prod.jibble.io/connect/token`
+- `JIBBLE_TIME_TRACKING_URL` = `https://time-tracking.prod.jibble.io`
+- `AIRTABLE_PERSONAL_ACCESS_TOKEN` = (Get from Airtable Dashboard → Settings → Developer → Personal Access Tokens)
+- `AIRTABLE_BASE_ID` = `appvhgZiUha2A1OQg`
+
+✅ Optional (for Phase 8):
+- `RESEND_API_KEY` = `re_i7s2UZLP_L6LLe2Zx6oyUEeB1qXB2ZVD8`
+- `CRON_SECRET` = `+ZNSzfxczVba69V8vnz4QMfMgvqyLD7x9tnci3MZ0fg=` (or generate your own with `openssl rand -base64 32`)
+
+**⚠️ Important**: The `SUPABASE_SERVICE_ROLE_KEY` is required for database write operations (ingestion). It's included in the list above.
+
+### 3. Deploy
 
 1. After adding environment variables, Vercel will automatically trigger a deployment
 2. Or manually trigger: Go to project → Deployments → Redeploy
 
-### 5. Verify Deployment
+### 4. Verify Deployment
 
 After deployment completes:
 
@@ -92,7 +118,7 @@ After deployment completes:
    - `/api/reports/weekly?previousWeek=true`
    - `/api/clock-in-out?startDate=2024-01-01&endDate=2024-01-31`
 
-### 6. Cron Jobs
+### 5. Cron Jobs
 
 The cron job is configured in `vercel.json` to run every 10 minutes:
 
@@ -109,7 +135,7 @@ The cron job is configured in `vercel.json` to run every 10 minutes:
 - Use Vercel Cron (available on Pro plan)
 - Or use an external cron service (cron-job.org, EasyCron, etc.) that hits your endpoint
 
-### 7. Post-Deployment Checklist
+### 6. Post-Deployment Checklist
 
 - [ ] All environment variables set
 - [ ] Build succeeds without errors
