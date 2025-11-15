@@ -84,10 +84,24 @@ See `.env.local.example` for all required environment variables.
 
 ## Documentation
 
-- [Development Plan](./development-plan.md)
-- [Simplified Development Plan](./development-plan-simplified.md)
+### Getting Started
+- [Deployment Guide](./DEPLOYMENT.md) - Complete deployment instructions
+- [Environment Variables](./VERCEL_ENV_VARIABLES.md) - Environment variable reference
+- [Development Plan](./development-plan.md) - Full development roadmap
+
+### User Guides
+- [API Documentation](./API_DOCUMENTATION.md) - Complete API reference
+- [UI User Guide](./UI_USER_GUIDE.md) - Internal UI usage guide
+
+### Operations
+- [Troubleshooting Guide](./TROUBLESHOOTING.md) - Common issues and solutions
+- [Maintenance Guide](./MAINTENANCE.md) - Maintenance procedures and monitoring
+- [Daily Sync Deployment](./DAILY_SYNC_DEPLOYMENT.md) - Daily sync setup and verification
+
+### Configuration
 - [Airtable Setup](./AIRTABLE_SETUP.md)
 - [Airtable Configuration](./AIRTABLE_CONFIG.md)
+- [Database Schema](./DATABASE_SCHEMA.md)
 
 ## License
 
