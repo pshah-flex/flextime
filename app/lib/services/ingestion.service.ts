@@ -96,7 +96,7 @@ export async function runIngestion(options: IngestionOptions = {}): Promise<Inge
     console.log('');
 
     // Step 4: Derive sessions (optional)
-    if (options.deriveSessions) {
+    if (options.deriveSessions !== false && result.timeEntries.inserted > 0) {
       console.log('📋 Step 4: Deriving sessions...');
       try {
         const sessions = await deriveSessionsForDateRange(startDate, endDate, {

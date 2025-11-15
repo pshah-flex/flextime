@@ -164,9 +164,9 @@ async function getIncompleteSessionsForClient(
  * Aggregates data across ALL groups associated with the client
  */
 export async function generateWeeklyReportForClient(
-  clientEmail: string,
-  options: WeeklyReportOptions
+  options: WeeklyReportOptions & { clientEmail: string }
 ): Promise<WeeklyReport> {
+  const { clientEmail, ...reportOptions } = options;
   // Get all group IDs for this client
   const clientGroupIds = await getClientGroupIds(clientEmail);
 
@@ -183,10 +183,10 @@ export async function generateWeeklyReportForClient(
 
   // Build aggregation options
   const aggOptions: AggregationOptions = {
-    startDate: options.startDate,
-    endDate: options.endDate,
+    startDate: reportOptions.startDate,
+    endDate: reportOptions.endDate,
     clientGroupIds,
-    includeIncomplete: options.includeIncomplete !== false,
+    includeIncomplete: reportOptions.includeIncomplete !== false,
   };
 
   // Get all aggregations
@@ -195,14 +195,14 @@ export async function generateWeeklyReportForClient(
     getHoursByAgent(aggOptions),
     getHoursByActivity(aggOptions),
     getHoursByClientGroup(aggOptions),
-    getIncompleteSessionsForClient(clientGroupIds, options.startDate, options.endDate),
+    getIncompleteSessionsForClient(clientGroupIds, reportOptions.startDate, reportOptions.endDate),
   ]);
 
   return {
     client_email: clientEmail,
     client_id: clientData?.id,
-    period_start: options.startDate,
-    period_end: options.endDate,
+    period_start: reportOptions.startDate,
+    period_end: reportOptions.endDate,
     summary,
     hours_by_agent: hoursByAgent,
     hours_by_activity: hoursByActivity,
@@ -227,7 +227,10 @@ export async function generateWeeklyReportsForAllClients(
 
   for (const email of clientEmails) {
     try {
-      const report = await generateWeeklyReportForClient(email, options);
+      const report = await generateWeeklyReportForClient({
+        ...options,
+        clientEmail: email,
+      });
       reports.push(report);
     } catch (error: any) {
       console.error(`Failed to generate report for ${email}:`, error.message);
@@ -259,7 +262,10 @@ export async function generatePreviousWeekReport(
   };
 
   if (clientEmail) {
-    return generateWeeklyReportForClient(clientEmail, options);
+    return generateWeeklyReportForClient({
+      ...options,
+      clientEmail,
+    });
   } else {
     return generateWeeklyReportsForAllClients(options);
   }

@@ -179,7 +179,55 @@ function generateWeeklyReportHTML(report: WeeklyReport): string {
  * Generate plain text email for weekly report
  */
 function generateWeeklyReportText(report: WeeklyReport): string {
-  return formatWeeklyReportForEmail(report);
+  const lines: string[] = [];
+
+  lines.push(`Weekly Time Tracking Report`);
+  lines.push(`Period: ${report.period_start} to ${report.period_end}`);
+  lines.push(``);
+
+  // Summary
+  lines.push(`Summary:`);
+  lines.push(`  Total Hours: ${report.summary.total_hours.toFixed(2)}`);
+  lines.push(`  Total Sessions: ${report.summary.total_sessions}`);
+  lines.push(`  Unique Agents: ${report.summary.unique_agents}`);
+  lines.push(`  Unique Groups: ${report.summary.unique_groups}`);
+  if (report.summary.incomplete_sessions > 0) {
+    lines.push(`  ⚠️  Incomplete Sessions: ${report.summary.incomplete_sessions}`);
+  }
+  lines.push(``);
+
+  // Hours by Agent
+  if (report.hours_by_agent.length > 0) {
+    lines.push(`Hours by Agent:`);
+    for (const agent of report.hours_by_agent) {
+      lines.push(`  ${agent.agent_name}: ${agent.total_hours.toFixed(2)} hours (${agent.session_count} sessions)`);
+      if (agent.incomplete_sessions > 0) {
+        lines.push(`    ⚠️  ${agent.incomplete_sessions} incomplete session(s)`);
+      }
+    }
+    lines.push(``);
+  }
+
+  // Hours by Activity
+  if (report.hours_by_activity.length > 0) {
+    lines.push(`Hours by Activity:`);
+    for (const activity of report.hours_by_activity) {
+      const activityName = activity.activity_name || 'Unspecified';
+      lines.push(`  ${activityName}: ${activity.total_hours.toFixed(2)} hours (${activity.session_count} sessions)`);
+    }
+    lines.push(``);
+  }
+
+  // Incomplete Sessions
+  if (report.incomplete_sessions_detail.length > 0) {
+    lines.push(`⚠️  Incomplete Sessions (Notes):`);
+    for (const session of report.incomplete_sessions_detail) {
+      lines.push(`  ${session.agent_name} (${session.group_name}) - Started: ${session.start_time_utc}`);
+    }
+    lines.push(``);
+  }
+
+  return lines.join('\n');
 }
 
 /**
@@ -288,6 +336,4 @@ export async function sendWeeklyReportEmailsToAllClients(
   };
 }
 
-// Re-export formatWeeklyReportForEmail from weekly-report for backward compatibility
-export { formatWeeklyReportForEmail } from './weekly-report';
 

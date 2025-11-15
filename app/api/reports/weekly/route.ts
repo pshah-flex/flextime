@@ -45,7 +45,8 @@ export async function GET(request: NextRequest) {
     }
 
     if (clientEmail) {
-      const report = await generateWeeklyReportForClient(clientEmail, {
+      const report = await generateWeeklyReportForClient({
+        clientEmail,
         startDate,
         endDate,
       });
