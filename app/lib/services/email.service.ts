@@ -6,6 +6,7 @@
 
 import { Resend } from 'resend';
 import type { WeeklyReport } from './weekly-report';
+import { formatHoursAsHrsMin } from '../utils/format-hours';
 
 const resend = new Resend(process.env.RESEND_API_KEY);
 
@@ -70,7 +71,7 @@ function generateWeeklyReportHTML(report: WeeklyReport): string {
                 <table role="presentation" style="width: 100%; border-collapse: collapse;">
                   <tr>
                     <td style="padding: 8px 0; color: #333; font-size: 14px;"><strong>Total Hours:</strong></td>
-                    <td style="padding: 8px 0; color: ${PRIMARY_COLOR}; font-size: 14px; font-weight: bold; text-align: right;">${report.summary.total_hours.toFixed(2)}</td>
+                    <td style="padding: 8px 0; color: ${PRIMARY_COLOR}; font-size: 14px; font-weight: bold; text-align: right;">${formatHoursAsHrsMin(report.summary.total_hours)}</td>
                   </tr>
                   <tr>
                     <td style="padding: 8px 0; color: #333; font-size: 14px;"><strong>Total Sessions:</strong></td>
@@ -109,7 +110,7 @@ function generateWeeklyReportHTML(report: WeeklyReport): string {
                       <span style="color: #666; font-size: 12px;">${agent.session_count} session(s)</span>
                     </td>
                     <td style="padding: 12px 0; color: ${PRIMARY_COLOR}; font-size: 16px; font-weight: bold; text-align: right;">
-                      ${agent.total_hours.toFixed(2)} hrs
+                      ${formatHoursAsHrsMin(agent.total_hours)}
                     </td>
                   </tr>
                   `).join('')}
@@ -130,7 +131,7 @@ function generateWeeklyReportHTML(report: WeeklyReport): string {
                       <span style="color: #666; font-size: 12px;">${activity.session_count} session(s)</span>
                     </td>
                     <td style="padding: 12px 0; color: ${PRIMARY_COLOR}; font-size: 16px; font-weight: bold; text-align: right;">
-                      ${activity.total_hours.toFixed(2)} hrs
+                      ${formatHoursAsHrsMin(activity.total_hours)}
                     </td>
                   </tr>
                   `).join('')}
@@ -187,7 +188,7 @@ function generateWeeklyReportText(report: WeeklyReport): string {
 
   // Summary
   lines.push(`Summary:`);
-  lines.push(`  Total Hours: ${report.summary.total_hours.toFixed(2)}`);
+  lines.push(`  Total Hours: ${formatHoursAsHrsMin(report.summary.total_hours)}`);
   lines.push(`  Total Sessions: ${report.summary.total_sessions}`);
   lines.push(`  Unique Agents: ${report.summary.unique_agents}`);
   lines.push(`  Unique Groups: ${report.summary.unique_groups}`);
@@ -200,7 +201,7 @@ function generateWeeklyReportText(report: WeeklyReport): string {
   if (report.hours_by_agent.length > 0) {
     lines.push(`Hours by Agent:`);
     for (const agent of report.hours_by_agent) {
-      lines.push(`  ${agent.agent_name}: ${agent.total_hours.toFixed(2)} hours (${agent.session_count} sessions)`);
+      lines.push(`  ${agent.agent_name}: ${formatHoursAsHrsMin(agent.total_hours)} (${agent.session_count} sessions)`);
       if (agent.incomplete_sessions > 0) {
         lines.push(`    ⚠️  ${agent.incomplete_sessions} incomplete session(s)`);
       }
@@ -213,7 +214,7 @@ function generateWeeklyReportText(report: WeeklyReport): string {
     lines.push(`Hours by Activity:`);
     for (const activity of report.hours_by_activity) {
       const activityName = activity.activity_name || 'Unspecified';
-      lines.push(`  ${activityName}: ${activity.total_hours.toFixed(2)} hours (${activity.session_count} sessions)`);
+      lines.push(`  ${activityName}: ${formatHoursAsHrsMin(activity.total_hours)} (${activity.session_count} sessions)`);
     }
     lines.push(``);
   }

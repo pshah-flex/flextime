@@ -249,15 +249,21 @@ async function main() {
     // Step 7: Generate weekly report for a period with data
     console.log('📋 Step 7: Generating weekly report...');
     
+    // Test Sunday-Saturday period
     // Use a date range that includes the actual data (2025-10-20 to 2025-11-14)
-    // Use the last week that has data: Nov 4 - Nov 10, 2025
-    const reportStartDate = new Date('2025-11-04');
-    const reportEndDate = new Date('2025-11-10');
+    // Use a Sunday-Saturday week that has data: Nov 3 (Sunday) - Nov 9 (Saturday), 2025
+    const reportStartDate = new Date('2025-11-03'); // Sunday
+    const reportEndDate = new Date('2025-11-09');   // Saturday
 
     const reportStartDateStr = reportStartDate.toISOString().split('T')[0];
     const reportEndDateStr = reportEndDate.toISOString().split('T')[0];
 
-    console.log(`   Period: ${reportStartDateStr} to ${reportEndDateStr} (week with data)`);
+    // Verify this is Sunday to Saturday
+    const startDay = reportStartDate.getDay(); // Should be 0 (Sunday)
+    const endDay = reportEndDate.getDay(); // Should be 6 (Saturday)
+    console.log(`   Period: ${reportStartDateStr} to ${reportEndDateStr} (Sunday to Saturday)`);
+    console.log(`   Start day: ${startDay === 0 ? 'Sunday ✓' : 'NOT Sunday ✗'}`);
+    console.log(`   End day: ${endDay === 6 ? 'Saturday ✓' : 'NOT Saturday ✗'}`);
 
     const report = await generateWeeklyReportForClient({
       clientEmail: clientEmail,
@@ -266,7 +272,8 @@ async function main() {
     });
 
     console.log(`   ✅ Report generated for ${clientEmail}`);
-    console.log(`   Total Hours: ${report.summary.total_hours.toFixed(2)}`);
+    const { formatHoursAsHrsMin } = await import('../app/lib/utils/format-hours');
+    console.log(`   Total Hours: ${formatHoursAsHrsMin(report.summary.total_hours)}`);
     console.log(`   Total Sessions: ${report.summary.total_sessions}`);
     console.log(`   Unique Agents: ${report.summary.unique_agents}`);
     console.log(`   Unique Groups: ${report.summary.unique_groups}`);
@@ -275,7 +282,7 @@ async function main() {
     if (report.hours_by_agent.length > 0) {
       console.log('   Hours by Agent:');
       report.hours_by_agent.forEach(agent => {
-        console.log(`     - ${agent.agent_name}: ${agent.total_hours.toFixed(2)} hrs (${agent.session_count} sessions)`);
+        console.log(`     - ${agent.agent_name}: ${formatHoursAsHrsMin(agent.total_hours)} (${agent.session_count} sessions)`);
         if (agent.incomplete_sessions > 0) {
           console.log(`       ⚠️  ${agent.incomplete_sessions} incomplete session(s)`);
         }
@@ -289,7 +296,7 @@ async function main() {
     if (report.hours_by_activity.length > 0) {
       console.log('   Hours by Activity:');
       report.hours_by_activity.forEach(activity => {
-        console.log(`     - ${activity.activity_name || 'Unspecified'}: ${activity.total_hours.toFixed(2)} hrs`);
+        console.log(`     - ${activity.activity_name || 'Unspecified'}: ${formatHoursAsHrsMin(activity.total_hours)}`);
       });
       console.log('');
     }
@@ -329,13 +336,13 @@ async function main() {
     console.log(`   Time Entries Inserted: ${ingestionResult.timeEntries?.inserted || 0}`);
     console.log(`   Sessions Derived: ${ingestionResult.sessions?.derived || 0}`);
     console.log(`   Report Period: ${reportStartDateStr} to ${reportEndDateStr}`);
-    console.log(`   Total Hours: ${report.summary.total_hours.toFixed(2)}`);
+    console.log(`   Total Hours: ${formatHoursAsHrsMin(report.summary.total_hours)}`);
     console.log(`   Total Sessions: ${report.summary.total_sessions}`);
     console.log(`   Unique Agents: ${report.summary.unique_agents}`);
     if (report.hours_by_agent.length > 0) {
       console.log(`   Agent Hours:`);
       report.hours_by_agent.forEach(agent => {
-        console.log(`      - ${agent.agent_name}: ${agent.total_hours.toFixed(2)} hrs`);
+        console.log(`      - ${agent.agent_name}: ${formatHoursAsHrsMin(agent.total_hours)}`);
       });
     }
     console.log(`   Email Sent: Yes ✅`);

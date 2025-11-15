@@ -246,15 +246,36 @@ export async function generateWeeklyReportsForAllClients(
 }
 
 /**
- * Generate weekly report for previous week
+ * Generate weekly report for previous week (Sunday to Saturday)
+ * Week runs from Sunday 00:00:00 to Saturday 23:59:59
  */
 export async function generatePreviousWeekReport(
   clientEmail?: string
 ): Promise<WeeklyReport | WeeklyReport[]> {
-  const endDate = new Date();
-  endDate.setDate(endDate.getDate() - endDate.getDay()); // Last Sunday
+  // Get today's date
+  const today = new Date();
+  
+  // Get last Saturday (most recent Saturday)
+  // If today is Sunday (day 0), get last Saturday (7 days ago)
+  // Otherwise, get the Saturday from the previous week
+  const dayOfWeek = today.getDay(); // 0 = Sunday, 6 = Saturday
+  const endDate = new Date(today);
+  
+  if (dayOfWeek === 0) {
+    // Today is Sunday, so last Saturday is yesterday (1 day ago)
+    endDate.setDate(endDate.getDate() - 1);
+  } else {
+    // Go back to the most recent Saturday
+    endDate.setDate(endDate.getDate() - (dayOfWeek + 1));
+  }
+  
+  // Set to Saturday 23:59:59
+  endDate.setHours(23, 59, 59, 999);
+  
+  // Get previous Sunday (start of the week)
   const startDate = new Date(endDate);
-  startDate.setDate(startDate.getDate() - 6); // Previous Monday
+  startDate.setDate(startDate.getDate() - 6); // 6 days before Saturday = Sunday
+  startDate.setHours(0, 0, 0, 0); // Sunday 00:00:00
 
   const options: WeeklyReportOptions = {
     startDate: startDate.toISOString().split('T')[0],
@@ -275,6 +296,7 @@ export async function generatePreviousWeekReport(
  * Format weekly report for email digest
  */
 export function formatWeeklyReportForEmail(report: WeeklyReport): string {
+  const { formatHoursAsHrsMin } = require('../utils/format-hours');
   const lines: string[] = [];
 
   lines.push(`Weekly Time Tracking Report`);
@@ -283,7 +305,7 @@ export function formatWeeklyReportForEmail(report: WeeklyReport): string {
 
   // Summary
   lines.push(`Summary:`);
-  lines.push(`  Total Hours: ${report.summary.total_hours.toFixed(2)}`);
+  lines.push(`  Total Hours: ${formatHoursAsHrsMin(report.summary.total_hours)}`);
   lines.push(`  Total Sessions: ${report.summary.total_sessions}`);
   lines.push(`  Unique Agents: ${report.summary.unique_agents}`);
   lines.push(`  Unique Groups: ${report.summary.unique_groups}`);
@@ -296,7 +318,7 @@ export function formatWeeklyReportForEmail(report: WeeklyReport): string {
   if (report.hours_by_agent.length > 0) {
     lines.push(`Hours by Agent:`);
     for (const agent of report.hours_by_agent) {
-      lines.push(`  ${agent.agent_name}: ${agent.total_hours.toFixed(2)} hours (${agent.session_count} sessions)`);
+      lines.push(`  ${agent.agent_name}: ${formatHoursAsHrsMin(agent.total_hours)} (${agent.session_count} sessions)`);
       if (agent.incomplete_sessions > 0) {
         lines.push(`    ⚠️  ${agent.incomplete_sessions} incomplete session(s)`);
       }
@@ -309,7 +331,7 @@ export function formatWeeklyReportForEmail(report: WeeklyReport): string {
     lines.push(`Hours by Activity:`);
     for (const activity of report.hours_by_activity) {
       const activityName = activity.activity_name || 'Unspecified';
-      lines.push(`  ${activityName}: ${activity.total_hours.toFixed(2)} hours (${activity.session_count} sessions)`);
+      lines.push(`  ${activityName}: ${formatHoursAsHrsMin(activity.total_hours)} (${activity.session_count} sessions)`);
     }
     lines.push(``);
   }

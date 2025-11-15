@@ -5,6 +5,7 @@ import StatCard from './components/StatCard';
 import DateRangePicker from './components/DateRangePicker';
 import { format } from 'date-fns';
 import { getSummaryStats, getHoursByAgent, getHoursByClientGroup } from './lib/api-client';
+import { formatHoursAsHrsMin } from './lib/utils/format-hours';
 
 export default function Dashboard() {
   const [startDate, setStartDate] = useState(() => {
@@ -98,7 +99,7 @@ export default function Dashboard() {
       <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 mb-8">
         <StatCard
           title="Total Hours"
-          value={summary?.total_hours?.toFixed(2) || '0.00'}
+          value={summary?.total_hours ? formatHoursAsHrsMin(summary.total_hours) : '0 hrs, 0 min'}
           subtitle={`${summary?.total_minutes || 0} minutes`}
         />
         <StatCard
@@ -132,7 +133,7 @@ export default function Dashboard() {
                     <p className="text-sm text-gray-500">{agent.session_count} sessions</p>
                   </div>
                   <div className="text-right">
-                    <p className="font-bold text-primary">{agent.total_hours.toFixed(2)} hrs</p>
+                    <p className="font-bold text-primary">{formatHoursAsHrsMin(agent.total_hours)}</p>
                     {agent.incomplete_sessions > 0 && (
                       <p className="text-xs text-orange-600">{agent.incomplete_sessions} incomplete</p>
                     )}
@@ -157,7 +158,7 @@ export default function Dashboard() {
                     <p className="text-sm text-gray-500">{group.agent_count} agents, {group.session_count} sessions</p>
                   </div>
                   <div className="text-right">
-                    <p className="font-bold text-primary">{group.total_hours.toFixed(2)} hrs</p>
+                    <p className="font-bold text-primary">{formatHoursAsHrsMin(group.total_hours)}</p>
                     {group.incomplete_sessions > 0 && (
                       <p className="text-xs text-orange-600">{group.incomplete_sessions} incomplete</p>
                     )}

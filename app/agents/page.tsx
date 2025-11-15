@@ -5,6 +5,7 @@ import DateRangePicker from '../components/DateRangePicker';
 import { format } from 'date-fns';
 import { getHoursByAgent, getClockInOut } from '../lib/api-client';
 import { LineChart, Line, XAxis, YAxis, CartesianGrid, Tooltip, Legend, ResponsiveContainer } from 'recharts';
+import { formatHoursAsHrsMin } from '../lib/utils/format-hours';
 
 export default function AgentsPage() {
   const [startDate, setStartDate] = useState(() => {
@@ -125,7 +126,7 @@ export default function AgentsPage() {
                     {agent.agent_name}
                   </p>
                   <p className={`text-sm ${selectedAgent === agent.agent_id ? 'text-white/80' : 'text-gray-500'}`}>
-                    {agent.total_hours.toFixed(2)} hrs • {agent.session_count} sessions
+                    {formatHoursAsHrsMin(agent.total_hours)} • {agent.session_count} sessions
                   </p>
                   {agent.incomplete_sessions > 0 && (
                     <p className={`text-xs mt-1 ${selectedAgent === agent.agent_id ? 'text-white/70' : 'text-orange-600'}`}>
@@ -151,7 +152,7 @@ export default function AgentsPage() {
                 <div className="grid grid-cols-3 gap-4">
                   <div>
                     <p className="text-sm text-gray-600">Total Hours</p>
-                    <p className="text-2xl font-bold text-primary">{selectedAgentData.total_hours.toFixed(2)}</p>
+                    <p className="text-2xl font-bold text-primary">{formatHoursAsHrsMin(selectedAgentData.total_hours)}</p>
                   </div>
                   <div>
                     <p className="text-sm text-gray-600">Sessions</p>
@@ -198,7 +199,7 @@ export default function AgentsPage() {
                         <div className="flex items-center justify-between mb-2">
                           <p className="font-medium text-gray-900">{format(new Date(record.date), 'MMM d, yyyy')}</p>
                           {record.is_complete && record.total_hours ? (
-                            <p className="font-bold text-primary">{record.total_hours.toFixed(2)} hrs</p>
+                            <p className="font-bold text-primary">{formatHoursAsHrsMin(record.total_hours)}</p>
                           ) : (
                             <span className="text-xs bg-orange-200 text-orange-800 px-2 py-1 rounded">Incomplete</span>
                           )}
