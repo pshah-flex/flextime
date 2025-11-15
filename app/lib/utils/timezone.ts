@@ -147,3 +147,115 @@ export function getWeekRangeUTC(date: Date = new Date()): { startUTC: string; en
   };
 }
 
+/**
+ * Pacific Timezone utilities
+ */
+
+const PACIFIC_TIMEZONE = 'America/Los_Angeles';
+
+/**
+ * Get current date in Pacific timezone
+ * Returns date in YYYY-MM-DD format
+ */
+export function getPacificDate(): string {
+  const now = new Date();
+  const formatter = new Intl.DateTimeFormat('en-US', {
+    timeZone: PACIFIC_TIMEZONE,
+    year: 'numeric',
+    month: '2-digit',
+    day: '2-digit',
+  });
+  
+  const parts = formatter.formatToParts(now);
+  const year = parts.find(p => p.type === 'year')?.value || '0';
+  const month = parts.find(p => p.type === 'month')?.value || '0';
+  const day = parts.find(p => p.type === 'day')?.value || '0';
+  
+  return `${year}-${month}-${day}`;
+}
+
+/**
+ * Get previous day's date in Pacific timezone
+ * Returns date in YYYY-MM-DD format
+ */
+export function getPreviousDayPacific(): string {
+  const now = new Date();
+  
+  // Get current date in Pacific
+  const pacificDate = new Date(now.toLocaleString('en-US', { timeZone: PACIFIC_TIMEZONE }));
+  
+  // Subtract one day
+  pacificDate.setDate(pacificDate.getDate() - 1);
+  
+  // Format as YYYY-MM-DD
+  const year = pacificDate.getFullYear();
+  const month = String(pacificDate.getMonth() + 1).padStart(2, '0');
+  const day = String(pacificDate.getDate()).padStart(2, '0');
+  
+  return `${year}-${month}-${day}`;
+}
+
+/**
+ * Get a specific date in Pacific timezone
+ * @param dateString - Optional date string (YYYY-MM-DD) or Date object. If not provided, uses current date.
+ * @returns Date in YYYY-MM-DD format in Pacific timezone
+ */
+export function getPacificDateForDate(dateString?: string | Date): string {
+  const date = dateString 
+    ? (typeof dateString === 'string' ? new Date(dateString + 'T12:00:00Z') : dateString)
+    : new Date();
+  
+  const formatter = new Intl.DateTimeFormat('en-US', {
+    timeZone: PACIFIC_TIMEZONE,
+    year: 'numeric',
+    month: '2-digit',
+    day: '2-digit',
+  });
+  
+  const parts = formatter.formatToParts(date);
+  const year = parts.find(p => p.type === 'year')?.value || '0';
+  const month = parts.find(p => p.type === 'month')?.value || '0';
+  const day = parts.find(p => p.type === 'day')?.value || '0';
+  
+  return `${year}-${month}-${day}`;
+}
+
+/**
+ * Get start and end of a day in Pacific timezone, converted to UTC
+ * @param dateString - Date in YYYY-MM-DD format (Pacific timezone)
+ * @returns Object with startUTC and endUTC ISO strings
+ */
+export function getDateRangePacific(dateString: string): { startUTC: string; endUTC: string } {
+  // Parse the date
+  const [year, month, day] = dateString.split('-').map(Number);
+  
+  // Calculate Pacific timezone offset for this date
+  // Create a reference date at noon UTC on the target date
+  const testUTC = new Date(Date.UTC(year, month - 1, day, 12, 0, 0));
+  
+  // Format this UTC date in Pacific timezone to get the hour
+  const testPacificHour = parseInt(new Intl.DateTimeFormat('en-US', {
+    timeZone: PACIFIC_TIMEZONE,
+    hour: '2-digit',
+    hour12: false,
+  }).format(testUTC));
+  
+  // Calculate offset: if noon UTC shows as 4 AM Pacific, offset is +8 hours (PST)
+  // If noon UTC shows as 5 AM Pacific, offset is +7 hours (PDT)
+  // This means midnight Pacific = (8 or 7) AM UTC on the same date
+  const offsetHours = 12 - testPacificHour;
+  
+  // Create start and end dates in UTC
+  // Midnight Pacific = (offsetHours) AM UTC on the same date
+  // End of day Pacific = (offsetHours) AM UTC on the next date, minus 1 second
+  const startUTC = new Date(Date.UTC(year, month - 1, day, offsetHours, 0, 0));
+  const endUTC = new Date(Date.UTC(year, month - 1, day, offsetHours + 24, 0, 0));
+  endUTC.setSeconds(endUTC.getSeconds() - 1);
+  endUTC.setMilliseconds(999);
+  
+  return {
+    startUTC: startUTC.toISOString(),
+    endUTC: endUTC.toISOString(),
+  };
+}
+

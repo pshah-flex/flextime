@@ -27,3 +27,6 @@ export * from './weekly-email-job';
 // Client Sync
 export * from './sync-clients';
 
+// Daily Sync
+export * from './daily-sync.service';
+
