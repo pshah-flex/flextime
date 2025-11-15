@@ -69,21 +69,16 @@ Add new cron job:
   "crons": [
     {
       "path": "/api/cron/daily-sync",
-      "schedule": "0 5 * * *",
-      "timezone": "America/Los_Angeles"
+      "schedule": "0 13 * * *"
     }
   ]
 }
 ```
 
-**Note**: Vercel cron schedules use UTC, so we need to convert 5 AM Pacific to UTC:
-- Pacific Time (PST/PDT): UTC-8/UTC-7
-- 5:00 AM Pacific = 1:00 PM UTC (PST) or 12:00 PM UTC (PDT)
-- Using `timezone: "America/Los_Angeles"` should handle DST automatically
-
-**Alternative**: Use cron expression that accounts for DST:
-- `0 12,13 * * *` - Run at both 12 PM and 1 PM UTC to cover DST changes
-- Or use a single time that's safe (e.g., 1 PM UTC = 5 AM PST, 6 AM PDT)
+**Note**: Vercel cron schedules use UTC. We use 1:00 PM UTC which equals:
+- 5:00 AM PST (Pacific Standard Time, UTC-8)
+- 6:00 AM PDT (Pacific Daylight Time, UTC-7)
+- This ensures the sync always runs after 5 AM Pacific regardless of DST
 
 ### Phase 2: Historical Data Backfill
 
@@ -126,13 +121,14 @@ Update weekly email cron:
 ```json
 {
   "path": "/api/cron/weekly-email",
-  "schedule": "0 13,14 * * 1",  // Monday at 1 PM or 2 PM UTC (covers DST)
-  "timezone": "America/Los_Angeles"
+  "schedule": "0 14 * * 1"
 }
 ```
 
-Or use a safer time that's guaranteed to be after 6 AM Pacific:
-- `0 14 * * 1` - Monday at 2 PM UTC = 6 AM PST, 7 AM PDT (safe)
+**Note**: 2:00 PM UTC on Monday equals:
+- 6:00 AM PST (Pacific Standard Time, UTC-8)
+- 7:00 AM PDT (Pacific Daylight Time, UTC-7)
+- This ensures the email always runs after 6 AM Pacific (and after daily sync at 5 AM) regardless of DST
 
 ### Phase 4: Timezone Handling
 
