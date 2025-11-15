@@ -76,8 +76,7 @@ export class AgentsRepository {
     const { data, error } = await this.supabase
       .from('activities')
       .select('agent_id, agents(*)')
-      .eq('client_group_id', groupId)
-      .order('agents.name', { ascending: true });
+      .eq('client_group_id', groupId);
 
     if (error) {
       throw new Error(`Failed to find agents by group: ${error.message}`);
@@ -91,7 +90,11 @@ export class AgentsRepository {
       }
     });
 
-    return Array.from(agentMap.values());
+    // Sort by name in memory
+    const agents = Array.from(agentMap.values());
+    agents.sort((a, b) => a.name.localeCompare(b.name));
+
+    return agents;
   }
 
   /**

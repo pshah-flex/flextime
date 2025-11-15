@@ -20,3 +20,10 @@ export * from './derive-sessions';
 // Weekly Reports
 export * from './weekly-report';
 
+// Email
+export * from './email.service';
+export * from './weekly-email-job';
+
+// Client Sync
+export * from './sync-clients';
+

@@ -96,7 +96,7 @@ export async function runIngestion(options: IngestionOptions = {}): Promise<Inge
     console.log('');
 
     // Step 4: Derive sessions (optional)
-    if (options.deriveSessions) {
+    if (options.deriveSessions !== false && result.timeEntries.inserted > 0) {
       console.log('📋 Step 4: Deriving sessions...');
       try {
         const sessions = await deriveSessionsForDateRange(startDate, endDate, {
@@ -115,23 +115,44 @@ export async function runIngestion(options: IngestionOptions = {}): Promise<Inge
             is_complete: s.is_complete,
           }));
 
-          // Batch insert sessions
+          // Batch insert sessions with duplicate handling (using unique constraint on agent_id, client_group_id, start_time_utc)
           const batchSize = 100;
           let inserted = 0;
+          let skipped = 0;
           let errors = 0;
 
           for (let i = 0; i < sessionsToInsert.length; i += batchSize) {
             const batch = sessionsToInsert.slice(i, i + batchSize);
-            try {
-              const { error } = await supabase
-                .from('activity_sessions')
-                .insert(batch);
-              
-              if (error) throw error;
-              inserted += batch.length;
-            } catch (error: any) {
-              console.error(`   ❌ Error inserting session batch: ${error.message}`);
-              errors += batch.length;
+            
+            // Try inserting one by one to handle duplicates gracefully
+            // Supabase upsert doesn't support composite unique constraints directly
+            for (const session of batch) {
+              try {
+                const { error: insertError } = await supabase
+                  .from('activity_sessions')
+                  .insert(session)
+                  .select()
+                  .single();
+                
+                if (insertError) {
+                  // Check if it's a duplicate (unique constraint violation)
+                  if (insertError.code === '23505' || insertError.message?.includes('duplicate') || insertError.message?.includes('unique')) {
+                    // Skip duplicates silently
+                    skipped++;
+                    continue;
+                  }
+                  throw insertError;
+                }
+                inserted++;
+              } catch (err: any) {
+                // Handle duplicates
+                if (err.code === '23505' || err.message?.includes('duplicate') || err.message?.includes('unique')) {
+                  skipped++;
+                } else {
+                  errors++;
+                  console.error(`   ⚠️  Error inserting session: ${err.message}`);
+                }
+              }
             }
           }
 
@@ -139,7 +160,7 @@ export async function runIngestion(options: IngestionOptions = {}): Promise<Inge
             derived: sessions.length,
             errors,
           };
-          console.log(`   ✅ Derived ${sessions.length} sessions, ${inserted} inserted, ${errors} errors`);
+          console.log(`   ✅ Derived ${sessions.length} sessions, ${inserted} inserted, ${skipped} skipped (duplicates), ${errors} errors`);
         } else {
           result.sessions = {
             derived: sessions.length,

@@ -6,6 +6,7 @@ import DateRangePicker from '../components/DateRangePicker';
 import { format } from 'date-fns';
 import { getHoursByClientGroup, getHoursByAgent, getHoursByActivity } from '../lib/api-client';
 import { BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, Legend, ResponsiveContainer, PieChart, Pie, Cell } from 'recharts';
+import { formatHoursAsHrsMin } from '../lib/utils/format-hours';
 
 const COLORS = ['#163C3C', '#ACC9A6', '#EBFDCF', '#1F4F4F', '#0F2A2A'];
 
@@ -125,7 +126,7 @@ export default function ClientGroupsPage() {
                     {group.group_name}
                   </p>
                   <p className={`text-sm ${selectedGroup === group.client_group_id ? 'text-white/80' : 'text-gray-500'}`}>
-                    {group.total_hours.toFixed(2)} hrs • {group.agent_count} agents
+                    {formatHoursAsHrsMin(group.total_hours)} • {group.agent_count} agents
                   </p>
                 </button>
               ))}
@@ -143,7 +144,7 @@ export default function ClientGroupsPage() {
                 <div className="grid grid-cols-3 gap-4">
                   <div>
                     <p className="text-sm text-gray-600">Total Hours</p>
-                    <p className="text-2xl font-bold text-primary">{selectedGroupData.total_hours.toFixed(2)}</p>
+                    <p className="text-2xl font-bold text-primary">{formatHoursAsHrsMin(selectedGroupData.total_hours)}</p>
                   </div>
                   <div>
                     <p className="text-sm text-gray-600">Sessions</p>
@@ -218,7 +219,7 @@ export default function ClientGroupsPage() {
                           <p className="text-sm text-gray-500">{agent.session_count} sessions</p>
                         </div>
                         <div className="text-right">
-                          <p className="font-bold text-primary">{agent.total_hours.toFixed(2)} hrs</p>
+                          <p className="font-bold text-primary">{formatHoursAsHrsMin(agent.total_hours)}</p>
                           {agent.incomplete_sessions > 0 && (
                             <p className="text-xs text-orange-600">{agent.incomplete_sessions} incomplete</p>
                           )}

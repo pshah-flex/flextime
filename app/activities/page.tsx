@@ -4,6 +4,7 @@ import { useEffect, useState } from 'react';
 import DateRangePicker from '../components/DateRangePicker';
 import { format } from 'date-fns';
 import { getHoursByActivity } from '../lib/api-client';
+import { formatHoursAsHrsMin } from '../lib/utils/format-hours';
 
 export default function ActivitiesPage() {
   const [startDate, setStartDate] = useState(() => {
@@ -110,7 +111,7 @@ export default function ActivitiesPage() {
                       {activity.activity_name || 'Unspecified Activity'}
                     </p>
                     <p className={`text-sm ${selectedActivity === key ? 'text-white/80' : 'text-gray-500'}`}>
-                      {activity.total_hours.toFixed(2)} hrs • {activity.session_count} sessions
+                      {formatHoursAsHrsMin(activity.total_hours)} • {activity.session_count} sessions
                     </p>
                   </button>
                 );
@@ -131,7 +132,7 @@ export default function ActivitiesPage() {
                 <div className="grid grid-cols-2 gap-4">
                   <div>
                     <p className="text-sm text-gray-600">Total Hours</p>
-                    <p className="text-2xl font-bold text-primary">{selectedActivityData.total_hours.toFixed(2)}</p>
+                    <p className="text-2xl font-bold text-primary">{formatHoursAsHrsMin(selectedActivityData.total_hours)}</p>
                   </div>
                   <div>
                     <p className="text-sm text-gray-600">Sessions</p>
@@ -148,9 +149,8 @@ export default function ActivitiesPage() {
                     <span className="text-gray-700">Average Hours per Session</span>
                     <span className="font-bold text-primary">
                       {selectedActivityData.session_count > 0
-                        ? (selectedActivityData.total_hours / selectedActivityData.session_count).toFixed(2)
-                        : '0.00'}{' '}
-                      hrs
+                        ? formatHoursAsHrsMin(selectedActivityData.total_hours / selectedActivityData.session_count)
+                        : '0 hrs, 0 min'}
                     </span>
                   </div>
                   <div className="flex justify-between items-center p-3 bg-gray-50 rounded-lg">
@@ -202,7 +202,7 @@ export default function ActivitiesPage() {
                         </td>
                         <td className="px-6 py-4 whitespace-nowrap">
                           <div className="text-sm text-gray-900 font-bold">
-                            {activity.total_hours.toFixed(2)}
+                            {formatHoursAsHrsMin(activity.total_hours)}
                           </div>
                         </td>
                         <td className="px-6 py-4 whitespace-nowrap">
