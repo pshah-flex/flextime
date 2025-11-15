@@ -240,7 +240,7 @@ export async function sendWeeklyReportEmail(
       throw new Error('RESEND_API_KEY is not set in environment variables');
     }
 
-    const fromEmail = options.from || process.env.RESEND_FROM_EMAIL || 'noreply@flexscale.com';
+    const fromEmail = options.from || process.env.RESEND_FROM_EMAIL || 'notifications@notifications.flexscale.com';
     const replyTo = options.replyTo || fromEmail;
 
     // Format dates for subject line (e.g., "Nov 2, 2025")
