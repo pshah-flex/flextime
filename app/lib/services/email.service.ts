@@ -240,16 +240,20 @@ export async function sendWeeklyReportEmail(
       throw new Error('RESEND_API_KEY is not set in environment variables');
     }
 
-    const fromEmail = options.from || process.env.RESEND_FROM_EMAIL || 'noreply@flexscale.com';
+    const fromEmail = options.from || process.env.RESEND_FROM_EMAIL || 'notifications@notifications.flexscale.com';
     const replyTo = options.replyTo || fromEmail;
 
     // Format dates for subject line (e.g., "Nov 2, 2025")
+    // Parse date string as UTC to avoid timezone issues
     const formatDateForSubject = (dateString: string) => {
-      const date = new Date(dateString);
+      // dateString is in format YYYY-MM-DD, parse it as UTC
+      const [year, month, day] = dateString.split('-').map(Number);
+      const date = new Date(Date.UTC(year, month - 1, day));
       return date.toLocaleDateString('en-US', { 
         year: 'numeric', 
         month: 'short', 
-        day: 'numeric' 
+        day: 'numeric',
+        timeZone: 'UTC'
       });
     };
     

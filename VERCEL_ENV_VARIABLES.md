@@ -49,7 +49,11 @@
 11. **Key**: `RESEND_API_KEY`  
     **Value**: `re_i7s2UZLP_L6LLe2Zx6oyUEeB1qXB2ZVD8`
 
-12. **Key**: `CRON_SECRET`  
+12. **Key**: `RESEND_FROM_EMAIL`  
+    **Value**: `notifications@notifications.flexscale.com`  
+    **Note**: Optional - defaults to `notifications@notifications.flexscale.com` if not set
+
+13. **Key**: `CRON_SECRET`  
     **Value**: `+ZNSzfxczVba69V8vnz4QMfMgvqyLD7x9tnci3MZ0fg=`  
     **Note**: You can generate your own with `openssl rand -base64 32`
 

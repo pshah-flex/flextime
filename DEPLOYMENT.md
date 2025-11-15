@@ -73,7 +73,7 @@ Add the following environment variables in Vercel Dashboard:
 | Variable Name | Value |
 |--------------|-------|
 | `RESEND_API_KEY` | `re_i7s2UZLP_L6LLe2Zx6oyUEeB1qXB2ZVD8` |
-| `RESEND_FROM_EMAIL` | `noreply@flexscale.com` (Optional - defaults to `noreply@flexscale.com`) |
+| `RESEND_FROM_EMAIL` | `notifications@notifications.flexscale.com` (Optional - defaults to `notifications@notifications.flexscale.com`) |
 
 #### Vercel Cron (Optional - for authentication)
 
@@ -99,7 +99,7 @@ Generate a secure random string (you can use: `openssl rand -base64 32` or any p
 
 ✅ Required for Phase 8 (Email Digest):
 - `RESEND_API_KEY` = `re_i7s2UZLP_L6LLe2Zx6oyUEeB1qXB2ZVD8`
-- `RESEND_FROM_EMAIL` = `noreply@flexscale.com` (Optional - defaults to `noreply@flexscale.com`)
+- `RESEND_FROM_EMAIL` = `notifications@notifications.flexscale.com` (Optional - defaults to `notifications@notifications.flexscale.com`)
 
 ✅ Optional (for Cron authentication):
 - `CRON_SECRET` = `+ZNSzfxczVba69V8vnz4QMfMgvqyLD7x9tnci3MZ0fg=` (or generate your own with `openssl rand -base64 32`)

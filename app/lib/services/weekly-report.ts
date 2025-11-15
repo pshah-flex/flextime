@@ -261,7 +261,7 @@ export async function generatePreviousWeekReport(
   const today = new Date();
   
   // Get last Saturday (most recent Saturday)
-  // If today is Sunday (day 0), get last Saturday (7 days ago)
+  // If today is Sunday (day 0), get last Saturday (yesterday)
   // Otherwise, get the Saturday from the previous week
   const dayOfWeek = today.getDay(); // 0 = Sunday, 6 = Saturday
   const endDate = new Date(today);
@@ -269,18 +269,64 @@ export async function generatePreviousWeekReport(
   if (dayOfWeek === 0) {
     // Today is Sunday, so last Saturday is yesterday (1 day ago)
     endDate.setDate(endDate.getDate() - 1);
+  } else if (dayOfWeek === 6) {
+    // Today is Saturday, so last Saturday is 7 days ago
+    endDate.setDate(endDate.getDate() - 7);
   } else {
-    // Go back to the most recent Saturday
-    endDate.setDate(endDate.getDate() - (dayOfWeek + 1));
+    // Go back to the Saturday of the PREVIOUS week
+    // Find the Saturday of the current week first
+    const currentWeekSaturday = new Date(today);
+    const daysToCurrentSaturday = (6 - dayOfWeek + 7) % 7;
+    currentWeekSaturday.setDate(currentWeekSaturday.getDate() + daysToCurrentSaturday);
+    
+    // Always go back 8 days from current week's Saturday to get previous week's Saturday
+    // (8 days ensures we get the previous week, not the current week if today is Saturday)
+    endDate.setTime(currentWeekSaturday.getTime());
+    endDate.setDate(endDate.getDate() - 8);
+    // Now find the Saturday of that week (go forward to Saturday)
+    const daysToSaturday = (6 - endDate.getDay() + 7) % 7;
+    if (daysToSaturday > 0) {
+      endDate.setDate(endDate.getDate() + daysToSaturday);
+    }
   }
   
   // Set to Saturday 23:59:59
   endDate.setHours(23, 59, 59, 999);
   
   // Get previous Sunday (start of the week)
+  // Sunday is 6 days before Saturday
   const startDate = new Date(endDate);
   startDate.setDate(startDate.getDate() - 6); // 6 days before Saturday = Sunday
   startDate.setHours(0, 0, 0, 0); // Sunday 00:00:00
+  
+  // Verify the dates are correct (start should be Sunday, end should be Saturday)
+  if (startDate.getDay() !== 0) {
+    // If start date is not Sunday, adjust it
+    const daysToSunday = startDate.getDay();
+    startDate.setDate(startDate.getDate() - daysToSunday);
+    startDate.setHours(0, 0, 0, 0);
+    // Recalculate end date to be 6 days later (Saturday)
+    endDate.setTime(startDate.getTime());
+    endDate.setDate(endDate.getDate() + 6);
+    endDate.setHours(23, 59, 59, 999);
+  }
+  
+  if (endDate.getDay() !== 6) {
+    // If end date is not Saturday, adjust it
+    // If it's Sunday (0), go back 1 day to Saturday
+    // Otherwise, go forward to the next Saturday
+    if (endDate.getDay() === 0) {
+      endDate.setDate(endDate.getDate() - 1);
+    } else {
+      const daysToSaturday = (6 - endDate.getDay() + 7) % 7;
+      endDate.setDate(endDate.getDate() + daysToSaturday);
+    }
+    endDate.setHours(23, 59, 59, 999);
+    // Recalculate start date to be 6 days earlier (Sunday)
+    startDate.setTime(endDate.getTime());
+    startDate.setDate(startDate.getDate() - 6);
+    startDate.setHours(0, 0, 0, 0);
+  }
 
   const options: WeeklyReportOptions = {
     startDate: startDate.toISOString().split('T')[0],

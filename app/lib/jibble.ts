@@ -308,11 +308,14 @@ class JibbleClient {
     const filters: string[] = [];
     
     // Use 'time' field for date filtering (not startTime/endTime)
+    // Format dates properly for OData (ISO 8601 with time component)
     if (startDate) {
-      filters.push(`time ge ${startDate}`);
+      const startDateTime = startDate.includes('T') ? startDate : `${startDate}T00:00:00Z`;
+      filters.push(`time ge ${startDateTime}`);
     }
     if (endDate) {
-      filters.push(`time le ${endDate}`);
+      const endDateTime = endDate.includes('T') ? endDate : `${endDate}T23:59:59Z`;
+      filters.push(`time le ${endDateTime}`);
     }
     if (personId) {
       // personId is a GUID, format without quotes
