@@ -78,12 +78,8 @@ function generateWeeklyReportHTML(report: WeeklyReport): string {
                     <td style="padding: 8px 0; color: #333; font-size: 14px; text-align: right;">${report.summary.total_sessions}</td>
                   </tr>
                   <tr>
-                    <td style="padding: 8px 0; color: #333; font-size: 14px;"><strong>Unique Agents:</strong></td>
+                    <td style="padding: 8px 0; color: #333; font-size: 14px;"><strong>Agents:</strong></td>
                     <td style="padding: 8px 0; color: #333; font-size: 14px; text-align: right;">${report.summary.unique_agents}</td>
-                  </tr>
-                  <tr>
-                    <td style="padding: 8px 0; color: #333; font-size: 14px;"><strong>Unique Groups:</strong></td>
-                    <td style="padding: 8px 0; color: #333; font-size: 14px; text-align: right;">${report.summary.unique_groups}</td>
                   </tr>
                   ${report.summary.incomplete_sessions > 0 ? `
                   <tr>
@@ -118,20 +114,20 @@ function generateWeeklyReportHTML(report: WeeklyReport): string {
               </div>
               ` : ''}
 
-              ${report.hours_by_activity.length > 0 ? `
-              <!-- Hours by Activity -->
+              ${report.hours_by_day && report.hours_by_day.length > 0 ? `
+              <!-- Hours by Day -->
               <div style="margin-bottom: 30px;">
-                <h2 style="margin: 0 0 15px 0; color: ${PRIMARY_COLOR}; font-size: 18px; font-weight: bold; border-bottom: 2px solid ${SECONDARY_COLOR}; padding-bottom: 10px;">Hours by Activity</h2>
+                <h2 style="margin: 0 0 15px 0; color: ${PRIMARY_COLOR}; font-size: 18px; font-weight: bold; border-bottom: 2px solid ${SECONDARY_COLOR}; padding-bottom: 10px;">Hours by Day</h2>
                 <table role="presentation" style="width: 100%; border-collapse: collapse;">
-                  ${report.hours_by_activity.map(activity => `
+                  ${report.hours_by_day.map(day => `
                   <tr style="border-bottom: 1px solid #e5e5e5;">
                     <td style="padding: 12px 0; color: #333; font-size: 14px;">
-                      <strong>${activity.activity_name || 'Unspecified Activity'}</strong>
+                      <strong>${day.date_formatted}</strong>
                       <br>
-                      <span style="color: #666; font-size: 12px;">${activity.session_count} session(s)</span>
+                      <span style="color: #666; font-size: 12px;">${day.session_count} session(s)</span>
                     </td>
                     <td style="padding: 12px 0; color: ${PRIMARY_COLOR}; font-size: 16px; font-weight: bold; text-align: right;">
-                      ${formatHoursAsHrsMin(activity.total_hours)}
+                      ${formatHoursAsHrsMin(day.total_hours)}
                     </td>
                   </tr>
                   `).join('')}
@@ -190,8 +186,7 @@ function generateWeeklyReportText(report: WeeklyReport): string {
   lines.push(`Summary:`);
   lines.push(`  Total Hours: ${formatHoursAsHrsMin(report.summary.total_hours)}`);
   lines.push(`  Total Sessions: ${report.summary.total_sessions}`);
-  lines.push(`  Unique Agents: ${report.summary.unique_agents}`);
-  lines.push(`  Unique Groups: ${report.summary.unique_groups}`);
+  lines.push(`  Agents: ${report.summary.unique_agents}`);
   if (report.summary.incomplete_sessions > 0) {
     lines.push(`  ⚠️  Incomplete Sessions: ${report.summary.incomplete_sessions}`);
   }
@@ -209,12 +204,11 @@ function generateWeeklyReportText(report: WeeklyReport): string {
     lines.push(``);
   }
 
-  // Hours by Activity
-  if (report.hours_by_activity.length > 0) {
-    lines.push(`Hours by Activity:`);
-    for (const activity of report.hours_by_activity) {
-      const activityName = activity.activity_name || 'Unspecified';
-      lines.push(`  ${activityName}: ${formatHoursAsHrsMin(activity.total_hours)} (${activity.session_count} sessions)`);
+  // Hours by Day
+  if (report.hours_by_day && report.hours_by_day.length > 0) {
+    lines.push(`Hours by Day:`);
+    for (const day of report.hours_by_day) {
+      lines.push(`  ${day.date_formatted}: ${formatHoursAsHrsMin(day.total_hours)} (${day.session_count} sessions)`);
     }
     lines.push(``);
   }
@@ -249,11 +243,24 @@ export async function sendWeeklyReportEmail(
     const fromEmail = options.from || process.env.RESEND_FROM_EMAIL || 'noreply@flexscale.com';
     const replyTo = options.replyTo || fromEmail;
 
+    // Format dates for subject line (e.g., "Nov 2, 2025")
+    const formatDateForSubject = (dateString: string) => {
+      const date = new Date(dateString);
+      return date.toLocaleDateString('en-US', { 
+        year: 'numeric', 
+        month: 'short', 
+        day: 'numeric' 
+      });
+    };
+    
+    const periodStartFormatted = formatDateForSubject(report.period_start);
+    const periodEndFormatted = formatDateForSubject(report.period_end);
+
     const { data, error } = await resend.emails.send({
       from: fromEmail,
       to: report.client_email,
       replyTo: replyTo,
-      subject: `Weekly Time Tracking Report - ${report.period_start} to ${report.period_end}`,
+      subject: `Weekly Time Tracking Report - ${periodStartFormatted} - ${periodEndFormatted}`,
       html: generateWeeklyReportHTML(report),
       text: generateWeeklyReportText(report),
     });

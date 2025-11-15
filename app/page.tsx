@@ -83,7 +83,7 @@ export default function Dashboard() {
       <div className="mb-8">
         <h1 className="text-3xl font-bold text-gray-900 mb-2">Dashboard</h1>
         <p className="text-gray-600">
-          Overview of time tracking data from {format(new Date(startDate), 'MMM d')} to {format(new Date(endDate), 'MMM d, yyyy')}
+          Overview of time tracking data
         </p>
       </div>
 

@@ -289,10 +289,10 @@ async function main() {
       console.log('   (This is normal if there are no time entries for the selected week)\n');
     }
 
-    if (report.hours_by_activity.length > 0) {
-      console.log('   Hours by Activity:');
-      report.hours_by_activity.forEach(activity => {
-        console.log(`     - ${activity.activity_name || 'Unspecified'}: ${formatHoursAsHrsMin(activity.total_hours)}`);
+    if (report.hours_by_day && report.hours_by_day.length > 0) {
+      console.log('   Hours by Day:');
+      report.hours_by_day.forEach(day => {
+        console.log(`     - ${day.date_formatted}: ${formatHoursAsHrsMin(day.total_hours)} (${day.session_count} sessions)`);
       });
       console.log('');
     }
