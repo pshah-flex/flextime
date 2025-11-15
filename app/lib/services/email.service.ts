@@ -243,11 +243,24 @@ export async function sendWeeklyReportEmail(
     const fromEmail = options.from || process.env.RESEND_FROM_EMAIL || 'noreply@flexscale.com';
     const replyTo = options.replyTo || fromEmail;
 
+    // Format dates for subject line to match the period format in email body
+    const formatDateForSubject = (dateString: string) => {
+      const date = new Date(dateString);
+      return date.toLocaleDateString('en-US', { 
+        year: 'numeric', 
+        month: 'long', 
+        day: 'numeric' 
+      });
+    };
+    
+    const periodStartFormatted = formatDateForSubject(report.period_start);
+    const periodEndFormatted = formatDateForSubject(report.period_end);
+
     const { data, error } = await resend.emails.send({
       from: fromEmail,
       to: report.client_email,
       replyTo: replyTo,
-      subject: `Weekly Time Tracking Report - ${report.period_start} to ${report.period_end}`,
+      subject: `Weekly Time Tracking Report - ${periodStartFormatted} - ${periodEndFormatted}`,
       html: generateWeeklyReportHTML(report),
       text: generateWeeklyReportText(report),
     });

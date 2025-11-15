@@ -275,12 +275,14 @@ export async function getHoursByDay(
     const dateStr = session.start_time_utc.split('T')[0];
     
     if (!dayMap.has(dateStr)) {
-      // Format date as "Nov 2"
+      // Format date as "Sunday 11/2" (day of week + M/D)
       const date = new Date(dateStr + 'T00:00:00Z');
-      const dateFormatted = date.toLocaleDateString('en-US', { 
-        month: 'short', 
+      const dayOfWeek = date.toLocaleDateString('en-US', { weekday: 'long' });
+      const monthDay = date.toLocaleDateString('en-US', { 
+        month: 'numeric', 
         day: 'numeric' 
       });
+      const dateFormatted = `${dayOfWeek} ${monthDay}`;
       
       dayMap.set(dateStr, {
         date: dateStr,
