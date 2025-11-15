@@ -69,6 +69,15 @@ export interface HoursByGroupAndActivity {
   session_count: number;
 }
 
+export interface HoursByAgentAndDay {
+  date: string; // YYYY-MM-DD
+  date_formatted: string; // "11/2"
+  agent_id: string;
+  agent_name: string;
+  total_hours: number;
+  total_minutes: number;
+}
+
 export interface AggregationOptions {
   startDate: string; // ISO date string (YYYY-MM-DD)
   endDate: string; // ISO date string (YYYY-MM-DD)
@@ -544,6 +553,88 @@ export async function getHoursByGroupAndActivity(
   }
 
   return Array.from(keyMap.values()).sort((a, b) => b.total_hours - a.total_hours);
+}
+
+/**
+ * Calculate hours per agent per day over time period
+ */
+export async function getHoursByAgentAndDay(
+  options: AggregationOptions
+): Promise<HoursByAgentAndDay[]> {
+  let query = supabase
+    .from('activity_sessions')
+    .select(`
+      start_time_utc,
+      agent_id,
+      duration_minutes,
+      agents!inner (
+        id,
+        name
+      )
+    `)
+    .gte('start_time_utc', `${options.startDate}T00:00:00Z`)
+    .lte('start_time_utc', `${options.endDate}T23:59:59Z`);
+
+  if (options.agentIds && options.agentIds.length > 0) {
+    query = query.in('agent_id', options.agentIds);
+  }
+
+  if (options.clientGroupIds && options.clientGroupIds.length > 0) {
+    query = query.in('client_group_id', options.clientGroupIds);
+  }
+
+  if (options.includeIncomplete === false) {
+    query = query.eq('is_complete', true);
+  }
+
+  const { data, error } = await query;
+
+  if (error) {
+    throw new Error(`Failed to get hours by agent and day: ${error.message}`);
+  }
+
+  // Aggregate by date and agent
+  const keyMap = new Map<string, HoursByAgentAndDay>();
+
+  for (const session of data || []) {
+    // Extract date from start_time_utc (YYYY-MM-DD)
+    const dateStr = session.start_time_utc.split('T')[0];
+    const agentId = session.agent_id;
+    const agent = session.agents as any;
+    const key = `${dateStr}:${agentId}`;
+
+    if (!keyMap.has(key)) {
+      // Format date as "11/2" (M/D format)
+      const date = new Date(dateStr + 'T00:00:00Z');
+      const monthDay = date.toLocaleDateString('en-US', {
+        month: 'numeric',
+        day: 'numeric'
+      });
+
+      keyMap.set(key, {
+        date: dateStr,
+        date_formatted: monthDay,
+        agent_id: agentId,
+        agent_name: agent.name,
+        total_hours: 0,
+        total_minutes: 0,
+      });
+    }
+
+    const stats = keyMap.get(key)!;
+
+    if (session.duration_minutes) {
+      stats.total_minutes += session.duration_minutes;
+      stats.total_hours = minutesToHours(stats.total_minutes);
+    }
+  }
+
+  // Sort by date (ascending), then by agent name
+  return Array.from(keyMap.values()).sort((a, b) => {
+    const dateCompare = a.date.localeCompare(b.date);
+    if (dateCompare !== 0) return dateCompare;
+    return a.agent_name.localeCompare(b.agent_name);
+  });
 }
 
 /**

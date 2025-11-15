@@ -4,7 +4,7 @@ import { useEffect, useState } from 'react';
 import { useRouter } from 'next/navigation';
 import DateRangePicker from '../components/DateRangePicker';
 import { format } from 'date-fns';
-import { getHoursByClientGroup, getHoursByAgent, getHoursByActivity } from '../lib/api-client';
+import { getHoursByClientGroup, getHoursByAgent, getHoursByActivity, getHoursByAgentAndDay } from '../lib/api-client';
 import { BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, Legend, ResponsiveContainer, PieChart, Pie, Cell } from 'recharts';
 import { formatHoursAsHrsMin } from '../lib/utils/format-hours';
 
@@ -23,6 +23,7 @@ export default function ClientGroupsPage() {
   const [selectedGroup, setSelectedGroup] = useState<string | null>(null);
   const [groupAgents, setGroupAgents] = useState<any[]>([]);
   const [groupActivities, setGroupActivities] = useState<any[]>([]);
+  const [hoursByAgentAndDay, setHoursByAgentAndDay] = useState<any[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
   const [searchQuery, setSearchQuery] = useState<string>('');
@@ -55,12 +56,14 @@ export default function ClientGroupsPage() {
 
   async function loadGroupDetails(groupId: string) {
     try {
-      const [agentsData, activitiesData] = await Promise.all([
+      const [agentsData, activitiesData, agentDayData] = await Promise.all([
         getHoursByAgent(startDate, endDate, [groupId]),
         getHoursByActivity(startDate, endDate, [groupId]),
+        getHoursByAgentAndDay(startDate, endDate, [groupId]),
       ]);
       setGroupAgents(agentsData);
       setGroupActivities(activitiesData);
+      setHoursByAgentAndDay(agentDayData);
     } catch (err: any) {
       console.error('Failed to load group details:', err);
     }
@@ -77,6 +80,34 @@ export default function ClientGroupsPage() {
   );
 
   const selectedGroupData = groups.find(g => g.client_group_id === selectedGroup);
+
+  // Transform hoursByAgentAndDay data for grouped bar chart
+  const chartDataByAgentAndDay = (() => {
+    if (hoursByAgentAndDay.length === 0) return [];
+    
+    // Group by date (YYYY-MM-DD) but keep formatted date for display
+    const dateMap = new Map<string, { date: string; dateKey: string } & Record<string, number>>();
+    
+    for (const item of hoursByAgentAndDay) {
+      if (!dateMap.has(item.date)) {
+        dateMap.set(item.date, { date: item.date_formatted, dateKey: item.date });
+      }
+      dateMap.get(item.date)![item.agent_name] = item.total_hours;
+    }
+    
+    // Convert to array and sort by date (dateKey is YYYY-MM-DD format)
+    return Array.from(dateMap.values())
+      .map(({ dateKey, ...rest }) => rest) // Remove dateKey before returning
+      .sort((a, b) => {
+        // Find original date key for sorting
+        const dateA = hoursByAgentAndDay.find(item => item.date_formatted === a.date)?.date || '';
+        const dateB = hoursByAgentAndDay.find(item => item.date_formatted === b.date)?.date || '';
+        return dateA.localeCompare(dateB);
+      });
+  })();
+
+  // Get unique agent names for bars
+  const uniqueAgentNames = Array.from(new Set(hoursByAgentAndDay.map(item => item.agent_name)));
 
   if (loading) {
     return (
@@ -212,6 +243,36 @@ export default function ClientGroupsPage() {
                       <Tooltip />
                       <Legend />
                       <Bar dataKey="total_hours" fill="#163C3C" name="Hours" />
+                    </BarChart>
+                  </ResponsiveContainer>
+                </div>
+              )}
+
+              {/* Hours per Agent per Day Chart */}
+              {hoursByAgentAndDay.length > 0 && chartDataByAgentAndDay.length > 0 && (
+                <div className="bg-white rounded-lg shadow-md p-6 border border-gray-200">
+                  <h3 className="text-xl font-bold text-gray-900 mb-4">Hours per Agent per Day</h3>
+                  <ResponsiveContainer width="100%" height={400}>
+                    <BarChart data={chartDataByAgentAndDay}>
+                      <CartesianGrid strokeDasharray="3 3" />
+                      <XAxis 
+                        dataKey="date" 
+                        angle={-45} 
+                        textAnchor="end" 
+                        height={100}
+                        interval={0}
+                      />
+                      <YAxis label={{ value: 'Hours', angle: -90, position: 'insideLeft' }} />
+                      <Tooltip />
+                      <Legend />
+                      {uniqueAgentNames.map((agentName, index) => (
+                        <Bar
+                          key={agentName}
+                          dataKey={agentName}
+                          fill={COLORS[index % COLORS.length]}
+                          name={agentName}
+                        />
+                      ))}
                     </BarChart>
                   </ResponsiveContainer>
                 </div>

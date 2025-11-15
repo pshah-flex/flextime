@@ -72,6 +72,19 @@ export async function getClockInOut(startDate: string, endDate: string, agentId?
   return result?.records || [];
 }
 
+export async function getHoursByAgentAndDay(startDate: string, endDate: string, clientGroupIds?: string[]): Promise<any[]> {
+  const params = new URLSearchParams({
+    type: 'hoursByAgentAndDay',
+    startDate,
+    endDate,
+  });
+  if (clientGroupIds && clientGroupIds.length > 0) {
+    params.append('clientGroupIds', clientGroupIds.join(','));
+  }
+  const result = await fetchAPI<any>(`/api/aggregations?${params.toString()}`);
+  return Array.isArray(result) ? result : [];
+}
+
 export async function getWeeklyReport(startDate: string, endDate: string, clientEmail?: string) {
   const params = new URLSearchParams({
     startDate,

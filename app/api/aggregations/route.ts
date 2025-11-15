@@ -13,6 +13,7 @@ import {
   getHoursByClientGroup,
   getHoursByAgentAndActivity,
   getHoursByGroupAndActivity,
+  getHoursByAgentAndDay,
   getSummaryStats,
   type AggregationOptions,
 } from '../../lib/services/aggregations';
@@ -67,11 +68,14 @@ export async function GET(request: NextRequest) {
       case 'hoursByGroupAndActivity':
         result = await getHoursByGroupAndActivity(options);
         break;
+      case 'hoursByAgentAndDay':
+        result = await getHoursByAgentAndDay(options);
+        break;
       default:
         return NextResponse.json(
           {
             success: false,
-            error: `Unknown aggregation type: ${type}. Valid types: summary, hoursByAgent, hoursByActivity, hoursByClientGroup, hoursByAgentAndActivity, hoursByGroupAndActivity`,
+            error: `Unknown aggregation type: ${type}. Valid types: summary, hoursByAgent, hoursByActivity, hoursByClientGroup, hoursByAgentAndActivity, hoursByGroupAndActivity, hoursByAgentAndDay`,
           },
           { status: 400 }
         );
