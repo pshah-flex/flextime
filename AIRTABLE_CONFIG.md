@@ -10,6 +10,8 @@ Your Airtable integration is configured and tested!
 - **Table Name**: `Clients`
 - **Email Field**: `Email`
 - **Group ID Field**: `Jibble Group ID`
+  - **Format**: Multiple groups are comma-separated (e.g., `group-id-1,group-id-2,group-id-3`)
+  - The integration automatically handles comma-separated values
 - **Personal Access Token**: Configured (stored in environment variable)
 
 ### Test Results

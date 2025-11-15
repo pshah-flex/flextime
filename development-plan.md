@@ -365,9 +365,12 @@ Create functions to calculate:
 ### 8.1 Airtable Integration
 - [x] Create function to fetch client emails from Airtable ✅
 - [x] Map client emails to Jibble groups (supports multiple groups per client) ✅
+- [x] Handle comma-separated Group IDs in Airtable "Jibble Group ID" field ✅
 - [ ] Handle updates to client list
 - [ ] Sync client records to `clients` table
 - [ ] Sync group mappings to `client_group_mappings` table
+
+**Note**: In Airtable, when a client has multiple Jibble groups, all Group IDs are stored in the "Jibble Group ID" field separated by commas. The integration handles this format automatically.
 
 ### 8.2 Email Template Design
 - [ ] Design weekly digest email template
