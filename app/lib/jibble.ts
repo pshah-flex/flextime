@@ -192,7 +192,7 @@ class JibbleClient {
     const queryString = params.toString();
     const endpoint = `/v1/Activities${queryString ? `?${queryString}` : ''}`;
     
-    const response = await this.request<ODataResponse<JibbleActivityType>>(endpoint);
+    const response: ODataResponse<JibbleActivityType> = await this.request<ODataResponse<JibbleActivityType>>(endpoint);
     return this.extractODataValue(response);
   }
 
@@ -220,7 +220,7 @@ class JibbleClient {
     const maxPages = 1000; // Safety limit
 
     while (nextLink && page < maxPages) {
-      const response = await this.request<ODataResponse<JibbleMember>>(nextLink);
+      const response: ODataResponse<JibbleMember> = await this.request<ODataResponse<JibbleMember>>(nextLink);
       const members = this.extractODataValue(response);
       allMembers.push(...members);
 
@@ -250,7 +250,7 @@ class JibbleClient {
     const maxPages = 1000;
 
     while (nextLink && page < maxPages) {
-      const response = await this.request<ODataResponse<JibbleGroup>>(nextLink);
+      const response: ODataResponse<JibbleGroup> = await this.request<ODataResponse<JibbleGroup>>(nextLink);
       const groups = this.extractODataValue(response);
       allGroups.push(...groups);
 
@@ -281,7 +281,7 @@ class JibbleClient {
    * Endpoint: https://workspace.prod.jibble.io/v1/Organizations
    */
   async getOrganizations(): Promise<JibbleOrganization[]> {
-    const response = await this.request<ODataResponse<JibbleOrganization>>('/v1/Organizations');
+    const response: ODataResponse<JibbleOrganization> = await this.request<ODataResponse<JibbleOrganization>>('/v1/Organizations');
     return this.extractODataValue(response);
   }
 
@@ -339,7 +339,7 @@ class JibbleClient {
     const maxPages = 1000; // Safety limit
 
     while (nextLink && page < maxPages) {
-      const response = await this.request<ODataResponse<JibbleTimeEntry>>(
+      const response: ODataResponse<JibbleTimeEntry> = await this.request<ODataResponse<JibbleTimeEntry>>(
         nextLink.startsWith('http') ? nextLink.replace(/^https?:\/\/[^/]+/, '') : nextLink,
         {},
         true

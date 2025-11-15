@@ -7,7 +7,7 @@
  * {
  *   "crons": [{
  *     "path": "/api/cron/ingest",
- *     "schedule": "*/5 * * * *"
+ *     "schedule": "every 10 minutes"
  *   }]
  * }
  */

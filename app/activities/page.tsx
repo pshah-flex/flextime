@@ -29,8 +29,8 @@ export default function ActivitiesPage() {
     setLoading(true);
     setError(null);
     try {
-      const data = await getHoursByActivity(startDate, endDate);
-      setActivities(data);
+      const data: any = await getHoursByActivity(startDate, endDate);
+      setActivities(data || []);
       if (data.length > 0 && !selectedActivity) {
         setSelectedActivity(data[0].activity_id || 'null');
       }

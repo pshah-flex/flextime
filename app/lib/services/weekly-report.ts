@@ -13,6 +13,7 @@ import {
   type AggregationOptions,
   type HoursByAgent,
   type HoursByActivity,
+  type HoursByClientGroup,
 } from './aggregations';
 import { getGroupsForClient } from '../airtable';
 import type { Client, ClientGroupMapping } from '../../types';
@@ -88,11 +89,9 @@ async function getClientGroupIds(clientEmail: string): Promise<string[]> {
 
   // Fallback to Airtable
   try {
-    const groups = await getGroupsForClient(clientEmail);
-    if (groups && groups.length > 0) {
+    const jibbleGroupIds = await getGroupsForClient(clientEmail);
+    if (jibbleGroupIds && jibbleGroupIds.length > 0) {
       // Get client group IDs from Jibble group IDs
-      const jibbleGroupIds = groups.flatMap(g => g.jibbleGroupIds || []);
-      
       const { data: groupData } = await supabase
         .from('client_groups')
         .select('id')

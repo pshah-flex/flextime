@@ -6,7 +6,7 @@
  */
 
 import { jibbleClient } from '../app/lib/jibble';
-import { mcp_supabase_execute_sql } from '@modelcontextprotocol/sdk/client.js';
+// Note: MCP functions are only available in MCP environment, not in build
 
 const PROJECT_ID = 'xegtayaaifuxepntloct';
 const GROUP_ID = '0c04e7ff-ec5b-4bba-8951-a7b2b99c4af3'; // 111 Hospitality

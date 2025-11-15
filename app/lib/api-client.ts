@@ -25,11 +25,11 @@ async function fetchAPI<T>(endpoint: string, options?: RequestInit): Promise<T> 
   return data.result || data.reports || data.records || data;
 }
 
-export async function getSummaryStats(startDate: string, endDate: string) {
-  return fetchAPI(`/api/aggregations?type=summary&startDate=${startDate}&endDate=${endDate}`);
+export async function getSummaryStats(startDate: string, endDate: string): Promise<any> {
+  return fetchAPI<any>(`/api/aggregations?type=summary&startDate=${startDate}&endDate=${endDate}`);
 }
 
-export async function getHoursByAgent(startDate: string, endDate: string, clientGroupIds?: string[]) {
+export async function getHoursByAgent(startDate: string, endDate: string, clientGroupIds?: string[]): Promise<any[]> {
   const params = new URLSearchParams({
     type: 'hoursByAgent',
     startDate,
@@ -38,10 +38,11 @@ export async function getHoursByAgent(startDate: string, endDate: string, client
   if (clientGroupIds && clientGroupIds.length > 0) {
     params.append('clientGroupIds', clientGroupIds.join(','));
   }
-  return fetchAPI(`/api/aggregations?${params.toString()}`);
+  const result = await fetchAPI<any>(`/api/aggregations?${params.toString()}`);
+  return Array.isArray(result) ? result : [];
 }
 
-export async function getHoursByActivity(startDate: string, endDate: string, clientGroupIds?: string[]) {
+export async function getHoursByActivity(startDate: string, endDate: string, clientGroupIds?: string[]): Promise<any[]> {
   const params = new URLSearchParams({
     type: 'hoursByActivity',
     startDate,
@@ -50,14 +51,16 @@ export async function getHoursByActivity(startDate: string, endDate: string, cli
   if (clientGroupIds && clientGroupIds.length > 0) {
     params.append('clientGroupIds', clientGroupIds.join(','));
   }
-  return fetchAPI(`/api/aggregations?${params.toString()}`);
+  const result = await fetchAPI<any>(`/api/aggregations?${params.toString()}`);
+  return Array.isArray(result) ? result : [];
 }
 
-export async function getHoursByClientGroup(startDate: string, endDate: string) {
-  return fetchAPI(`/api/aggregations?type=hoursByClientGroup&startDate=${startDate}&endDate=${endDate}`);
+export async function getHoursByClientGroup(startDate: string, endDate: string): Promise<any[]> {
+  const result = await fetchAPI<any>(`/api/aggregations?type=hoursByClientGroup&startDate=${startDate}&endDate=${endDate}`);
+  return Array.isArray(result) ? result : [];
 }
 
-export async function getClockInOut(startDate: string, endDate: string, agentId?: string) {
+export async function getClockInOut(startDate: string, endDate: string, agentId?: string): Promise<any[]> {
   const params = new URLSearchParams({
     startDate,
     endDate,
@@ -65,7 +68,8 @@ export async function getClockInOut(startDate: string, endDate: string, agentId?
   if (agentId) {
     params.append('agentId', agentId);
   }
-  return fetchAPI(`/api/clock-in-out?${params.toString()}`);
+  const result = await fetchAPI<any>(`/api/clock-in-out?${params.toString()}`);
+  return result?.records || [];
 }
 
 export async function getWeeklyReport(startDate: string, endDate: string, clientEmail?: string) {

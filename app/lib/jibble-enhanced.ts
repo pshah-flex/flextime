@@ -310,7 +310,7 @@ class JibbleClientEnhanced {
     const maxPages = 1000; // Safety limit
 
     while (nextLink && page < maxPages) {
-      const response = await this.request<ODataResponse<T>>(
+      const response: ODataResponse<T> = await this.request<ODataResponse<T>>(
         nextLink.startsWith('http') ? nextLink.replace(/^https?:\/\/[^/]+/, '') : nextLink,
         {},
         useTimeTrackingApi,
