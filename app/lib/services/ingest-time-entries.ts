@@ -130,6 +130,13 @@ export async function ingestTimeEntries(
           }
 
           // Normalize and prepare for insert
+          // Ensure entry_type is valid ('In' or 'Out')
+          if (entry.type !== 'In' && entry.type !== 'Out') {
+            console.warn(`   ⚠️  Invalid entry_type '${entry.type}' for entry ${entry.id}, skipping`);
+            skipped++;
+            continue;
+          }
+          
           const activityData = normalizeTimeEntry(entry, agentId, clientGroupId);
           activitiesToInsert.push(activityData);
         } catch (error: any) {

@@ -71,6 +71,7 @@ export async function runWeeklyEmailJob(options: {
       });
     } else {
       // Generate previous week report (Sunday to Saturday)
+      // Use the same logic as generatePreviousWeekReport
       const today = new Date();
       const dayOfWeek = today.getDay(); // 0 = Sunday, 6 = Saturday
       const endDate = new Date(today);
@@ -78,9 +79,24 @@ export async function runWeeklyEmailJob(options: {
       if (dayOfWeek === 0) {
         // Today is Sunday, so last Saturday is yesterday
         endDate.setDate(endDate.getDate() - 1);
+      } else if (dayOfWeek === 6) {
+        // Today is Saturday, so last Saturday is 7 days ago
+        endDate.setDate(endDate.getDate() - 7);
       } else {
-        // Go back to the most recent Saturday
-        endDate.setDate(endDate.getDate() - (dayOfWeek + 1));
+        // Go back to the Saturday of the PREVIOUS week
+        // Find the Saturday of the current week first
+        const currentWeekSaturday = new Date(today);
+        const daysToCurrentSaturday = (6 - dayOfWeek + 7) % 7;
+        currentWeekSaturday.setDate(currentWeekSaturday.getDate() + daysToCurrentSaturday);
+        
+        // Always go back 8 days from current week's Saturday to get previous week's Saturday
+        endDate.setTime(currentWeekSaturday.getTime());
+        endDate.setDate(endDate.getDate() - 8);
+        // Now find the Saturday of that week
+        const daysToSaturday = (6 - endDate.getDay() + 7) % 7;
+        if (daysToSaturday > 0) {
+          endDate.setDate(endDate.getDate() + daysToSaturday);
+        }
       }
       
       // Set to Saturday 23:59:59
@@ -90,6 +106,25 @@ export async function runWeeklyEmailJob(options: {
       const startDate = new Date(endDate);
       startDate.setDate(startDate.getDate() - 6); // 6 days before Saturday = Sunday
       startDate.setHours(0, 0, 0, 0); // Sunday 00:00:00
+      
+      // Verify the dates are correct (start should be Sunday, end should be Saturday)
+      if (startDate.getDay() !== 0) {
+        const daysToSunday = startDate.getDay();
+        startDate.setDate(startDate.getDate() - daysToSunday);
+        startDate.setHours(0, 0, 0, 0);
+        endDate.setTime(startDate.getTime());
+        endDate.setDate(endDate.getDate() + 6);
+        endDate.setHours(23, 59, 59, 999);
+      }
+      
+      if (endDate.getDay() !== 6) {
+        const daysToSaturday = (6 - endDate.getDay() + 7) % 7;
+        endDate.setDate(endDate.getDate() + daysToSaturday);
+        endDate.setHours(23, 59, 59, 999);
+        startDate.setTime(endDate.getTime());
+        startDate.setDate(startDate.getDate() - 6);
+        startDate.setHours(0, 0, 0, 0);
+      }
 
       period.start = startDate.toISOString().split('T')[0];
       period.end = endDate.toISOString().split('T')[0];
@@ -141,6 +176,7 @@ export async function runPreviousWeekEmailJob(options: {
   replyTo?: string;
 } = {}): Promise<WeeklyEmailJobResult> {
   // Get previous week (Sunday to Saturday)
+  // Use the same logic as generatePreviousWeekReport
   const today = new Date();
   const dayOfWeek = today.getDay(); // 0 = Sunday, 6 = Saturday
   const endDate = new Date(today);
@@ -148,9 +184,24 @@ export async function runPreviousWeekEmailJob(options: {
   if (dayOfWeek === 0) {
     // Today is Sunday, so last Saturday is yesterday
     endDate.setDate(endDate.getDate() - 1);
+  } else if (dayOfWeek === 6) {
+    // Today is Saturday, so last Saturday is 7 days ago
+    endDate.setDate(endDate.getDate() - 7);
   } else {
-    // Go back to the most recent Saturday
-    endDate.setDate(endDate.getDate() - (dayOfWeek + 1));
+    // Go back to the Saturday of the PREVIOUS week
+    // Find the Saturday of the current week first
+    const currentWeekSaturday = new Date(today);
+    const daysToCurrentSaturday = (6 - dayOfWeek + 7) % 7;
+    currentWeekSaturday.setDate(currentWeekSaturday.getDate() + daysToCurrentSaturday);
+    
+    // Always go back 8 days from current week's Saturday to get previous week's Saturday
+    endDate.setTime(currentWeekSaturday.getTime());
+    endDate.setDate(endDate.getDate() - 8);
+    // Now find the Saturday of that week
+    const daysToSaturday = (6 - endDate.getDay() + 7) % 7;
+    if (daysToSaturday > 0) {
+      endDate.setDate(endDate.getDate() + daysToSaturday);
+    }
   }
   
   // Set to Saturday 23:59:59
@@ -160,6 +211,25 @@ export async function runPreviousWeekEmailJob(options: {
   const startDate = new Date(endDate);
   startDate.setDate(startDate.getDate() - 6); // 6 days before Saturday = Sunday
   startDate.setHours(0, 0, 0, 0); // Sunday 00:00:00
+  
+  // Verify the dates are correct (start should be Sunday, end should be Saturday)
+  if (startDate.getDay() !== 0) {
+    const daysToSunday = startDate.getDay();
+    startDate.setDate(startDate.getDate() - daysToSunday);
+    startDate.setHours(0, 0, 0, 0);
+    endDate.setTime(startDate.getTime());
+    endDate.setDate(endDate.getDate() + 6);
+    endDate.setHours(23, 59, 59, 999);
+  }
+  
+  if (endDate.getDay() !== 6) {
+    const daysToSaturday = (6 - endDate.getDay() + 7) % 7;
+    endDate.setDate(endDate.getDate() + daysToSaturday);
+    endDate.setHours(23, 59, 59, 999);
+    startDate.setTime(endDate.getTime());
+    startDate.setDate(startDate.getDate() - 6);
+    startDate.setHours(0, 0, 0, 0);
+  }
 
   return runWeeklyEmailJob({
     startDate: startDate.toISOString().split('T')[0],
