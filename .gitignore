@@ -42,3 +42,6 @@ Thumbs.db
 # Supabase
 .supabase/
 
+# MCP Servers (cloned repositories)
+resend-mcp/
+

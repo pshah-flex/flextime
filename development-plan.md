@@ -1,0 +1,563 @@
+# FlexTime Development Plan
+
+## Project Overview
+Build a time tracking analytics system that ingests data from Jibble API, stores it durably, and provides reporting capabilities for Flexscale's ~40 offshore agents.
+
+## Progress Summary
+
+### ✅ Completed Setup Tasks
+- **Git Repository**: Connected to `git@github.com:pshah-flex/flextime.git`
+- **Supabase Project**: Created and active ("pshah-flex's Project", ID: `xegtayaaifuxepntloct`)
+- **Resend Email Service**: Chosen and MCP server configured with API key
+- **Cron Job Solution**: Decision made - Using Vercel Cron Jobs
+- **Project Documentation**: Requirements documented in `documentation.md`
+
+### 🔄 In Progress
+- None currently
+
+### 📋 Next Up
+- Set up Next.js/React project structure
+- Configure Supabase connection strings and environment variables
+- Connect repository to Vercel
+
+---
+
+## Phase 1: Project Setup & Infrastructure (Week 1)
+
+### 1.1 Initialize Project Structure
+- [x] Set up Next.js/React project (Vercel-compatible) - Next.js 14 with App Router
+- [x] Configure TypeScript - tsconfig.json configured
+- [x] Set up environment variables structure - .env.local.example created
+- [x] Initialize Git repository (Already connected to `git@github.com:pshah-flex/flextime.git`)
+- [x] Create project folder structure:
+  ```
+  /app
+    /api (API routes) ✅
+    /components (UI components) ✅
+    /lib (utilities, helpers) ✅
+    /types (TypeScript definitions) ✅
+    /hooks (React hooks) ✅
+  /supabase (database schema) ✅
+  /scripts (utility scripts) ✅
+  ```
+
+### 1.2 Supabase Setup
+- [x] Create Supabase project (Project: "pshah-flex's Project", ID: `xegtayaaifuxepntloct`, Status: ACTIVE_HEALTHY)
+- [x] Configure connection strings - Supabase client placeholder created in `app/lib/supabase.ts`
+- [x] Set up environment variables for Supabase - Added to `.env.local.example` and `.env.local`
+- [x] Install Supabase client library - `@supabase/supabase-js` installed
+- [x] Create database schema (Phase 2.1-2.4) ✅
+- [x] Test database connectivity ✅
+  - [x] Basic connection test ✅
+  - [x] Table structure verification ✅
+  - [x] CRUD operations test ✅
+  - [x] Foreign key constraints test ✅
+  - [x] Unique constraints test ✅
+  - [x] Check constraints test ✅
+  - [x] Auto-update triggers test ✅
+
+### 1.3 Vercel Configuration
+- [x] Connect repository to Vercel (Project: "flexscale/flextime", Project ID: `prj_gqcOVnJka9kjAIpENwtZqDUT0BoE`)
+- [x] Configure build settings - Next.js auto-detected by Vercel (build successful)
+- [ ] Set up environment variables in Vercel dashboard (add all variables from `.env.local`)
+- [ ] Test deployment pipeline (deploy to Vercel and verify)
+
+### 1.4 External Service Setup
+- [x] Obtain Jibble API credentials and documentation:
+  - [x] Log in to Jibble as admin/owner
+  - [x] Navigate to Organization → API Credentials
+  - [x] Create new API secret
+  - [x] Copy Client ID and Client Secret
+  - [x] Credentials obtained: Client ID `f650b933-9a8b-49f0-8be3-3656230264df`
+  - [x] API endpoints identified and tested ✅:
+    - Organizations: `https://workspace.prod.jibble.io/v1/Organizations` ✅
+    - People (Members): `https://workspace.prod.jibble.io/v1/People` ✅
+    - Activities: `https://workspace.prod.jibble.io/v1/Activities` ✅
+  - [x] OAuth token endpoint: `https://identity.prod.jibble.io/connect/token` ✅
+  - [x] Access token obtained successfully ✅
+  - [x] API connection tested and working ✅
+  - [x] Jibble client updated with correct endpoints and OData handling ✅
+- [x] Set up Airtable base/API access:
+  - [x] Create Personal Access Token (PAT) in Airtable Developer Hub
+  - [x] Get Base ID: `appvhgZiUha2A1OQg`
+  - [x] Identify table name: `Clients`
+  - [x] Identify field names: `Email`, `Jibble Group ID`
+  - [x] Test connection - ✅ Working (found 1 record with email)
+  - [ ] Store credentials in environment variables (will be done when Next.js project is set up)
+- [x] Choose email service: **Resend (chosen)** - MCP server configured
+- [x] Obtain API keys: Resend API key obtained and configured in MCP
+- [ ] Test API connections
+
+### 1.5 Cron Job Solution Research & Setup
+- [x] Research options: **Decision made - Using Vercel Cron Jobs**
+  - ✅ Vercel Cron Jobs (chosen - native integration with Vercel)
+  - GitHub Actions scheduled workflows (not chosen)
+  - External cron service (not chosen)
+- [ ] Implement Vercel Cron Jobs configuration (`vercel.json`)
+- [ ] Test scheduled job execution
+
+---
+
+## Phase 2: Database Schema Design (Week 1-2)
+
+### 2.1 Design Database Schema
+Create tables in Supabase:
+
+**agents**
+- `id` (UUID, primary key)
+- `jibble_member_id` (string, unique, indexed)
+- `name` (string)
+- `email` (string, optional)
+- `timezone` (string, for display purposes)
+- `created_at` (timestamp)
+- `updated_at` (timestamp)
+
+**client_groups**
+- `id` (UUID, primary key)
+- `jibble_group_id` (string, unique, indexed)
+- `group_name` (string)
+- `group_code` (string, optional)
+- `created_at` (timestamp)
+- `updated_at` (timestamp)
+
+**clients** (from Airtable)
+- `id` (UUID, primary key)
+- `airtable_record_id` (string, unique, indexed) - Airtable record ID
+- `email` (string, unique, indexed) - Client email address
+- `created_at` (timestamp)
+- `updated_at` (timestamp)
+
+**client_group_mappings** (many-to-many relationship)
+- `id` (UUID, primary key)
+- `client_id` (UUID, foreign key → clients)
+- `client_group_id` (UUID, foreign key → client_groups)
+- `created_at` (timestamp)
+- Unique constraint on `(client_id, client_group_id)` to prevent duplicates
+
+**activities** (time entries from Jibble)
+- `id` (UUID, primary key)
+- `jibble_time_entry_id` (string, unique, indexed) - for deduplication (from Jibble TimeEntry.id)
+- `agent_id` (UUID, foreign key → agents)
+- `client_group_id` (UUID, foreign key → client_groups)
+- `activity_id` (string, optional) - Jibble activity type ID
+- `entry_type` (string) - "In" or "Out" from Jibble
+- `time_utc` (timestamp, indexed) - The timestamp from Jibble
+- `local_time` (string, optional) - Local time string from Jibble
+- `belongs_to_date` (date, indexed) - The date this entry belongs to
+- `raw_payload` (JSONB) - full Jibble event for auditing
+- `created_at` (timestamp)
+- `updated_at` (timestamp)
+
+**activity_sessions** (derived/computed table or view)
+- `id` (UUID, primary key)
+- `activity_id` (UUID, foreign key → activities)
+- `agent_id` (UUID, foreign key → agents)
+- `client_group_id` (UUID, foreign key → client_groups)
+- `start_time_utc` (timestamp)
+- `end_time_utc` (timestamp, nullable - incomplete sessions)
+- `duration_minutes` (integer, calculated)
+- `is_complete` (boolean)
+- `created_at` (timestamp)
+
+### 2.2 Create Indexes
+- [x] Index on `activities(agent_id, time_utc)` for agent queries ✅
+- [x] Index on `activities(jibble_time_entry_id)` for deduplication ✅
+- [x] Index on `activities(client_group_id, time_utc)` for group queries ✅
+- [x] Index on `activities(time_utc)` for time-range queries ✅
+- [x] Index on `activities(belongs_to_date)` for date-based queries ✅
+- [x] Index on `agents(jibble_member_id)` for lookups ✅
+- [x] Index on `client_groups(jibble_group_id)` for lookups ✅
+- [x] Index on `clients(email)` for email lookups ✅
+- [x] Index on `clients(airtable_record_id)` for Airtable sync ✅
+- [x] Index on `client_group_mappings(client_id, client_group_id)` for efficient lookups ✅
+
+### 2.3 Set Up Database Constraints
+- [x] Unique constraint on `activities(jibble_time_entry_id)` ✅
+- [x] Unique constraint on `client_group_mappings(client_id, client_group_id)` ✅
+- [x] Foreign key constraints ✅
+- [x] Not null constraints where appropriate ✅
+- [x] Check constraint on `activities.entry_type` (In/Out) ✅
+- [x] Auto-update triggers for `updated_at` columns ✅
+
+### 2.4 Create Database Migration Scripts
+- [x] Write migration files (Supabase migrations) ✅
+- [x] Test migrations on dev database ✅
+- [x] Document schema decisions ✅
+
+---
+
+## Phase 3: Core Data Models & Types (Week 2)
+
+### 3.1 Define TypeScript Types
+- [x] Create types for:
+  - [x] Jibble API response structures ✅
+  - [x] Agent entity ✅
+  - [x] ClientGroup entity ✅
+  - [x] Activity entity ✅
+  - [x] Session entity ✅
+  - [x] API request/response types ✅
+  - [x] Aggregation & reporting types ✅
+  - [x] Error types ✅
+
+### 3.2 Create Data Access Layer
+- [x] Build repository/service layer for database operations ✅
+  - [x] AgentsRepository ✅
+  - [x] ClientGroupsRepository ✅
+  - [x] ActivitiesRepository ✅
+- [x] Implement CRUD operations for agents, groups, activities ✅
+- [x] Add error handling and logging ✅
+- [x] Create helper functions for timezone conversions ✅
+
+---
+
+## Phase 4: Jibble API Integration (Week 2-3)
+
+### 4.1 Jibble API Client
+- [x] Research Jibble API documentation ✅
+- [x] Create API client wrapper ✅
+- [x] Implement authentication ✅
+- [x] Add retry logic and error handling ✅
+  - [x] Exponential backoff for retries ✅
+  - [x] Retry on 5xx errors ✅
+  - [x] Retry on rate limit (429) with Retry-After header ✅
+  - [x] Network error retry ✅
+- [x] Implement rate limiting ✅
+  - [x] Per-second rate limiting ✅
+  - [x] Per-minute rate limiting ✅
+
+### 4.2 Data Fetching Functions
+- [x] Create function to fetch time entries from Jibble ✅
+- [x] Handle pagination if API supports it ✅
+  - [x] Automatic pagination for all endpoints ✅
+  - [x] Support for @odata.nextLink ✅
+- [x] Implement incremental fetching (fetch only new/updated records) ✅
+- [x] Add filtering by date range for backfills ✅
+- [x] Helper functions for common patterns ✅
+  - [x] fetchTimeEntriesForDateRange ✅
+  - [x] fetchTimeEntriesForGroup ✅
+  - [x] fetchTimeEntriesForGroups ✅
+  - [x] fetchTimeEntriesForAgent ✅
+  - [x] fetchIncrementalTimeEntries ✅
+
+### 4.3 Testing API Integration
+- [x] Test API calls with sample data ✅ (done in earlier phases)
+- [x] Verify data structure matches expectations ✅
+- [ ] Test error scenarios (API down, rate limits, etc.) - Can test in Phase 5
+
+---
+
+## Phase 5: Data Ingestion Pipeline (Week 3-4) ✅
+
+### 5.1 Ingestion Service ✅
+- [x] Create ingestion service that:
+  - Fetches data from Jibble API ✅
+  - Normalizes timestamps to UTC ✅
+  - Checks for duplicates using `jibble_time_entry_id` ✅
+  - Stores raw payload in `raw_payload` field ✅
+  - Links activities to agents and client groups ✅
+
+### 5.2 Agent & Group Sync ✅
+- [x] Create function to sync agents from Jibble (create/update) ✅
+- [x] Create function to sync client groups from Jibble ✅
+- [x] Handle agent/group updates ✅
+
+### 5.3 Deduplication Logic ✅
+- [x] Implement duplicate detection using `jibble_time_entry_id` ✅
+- [x] Handle edge cases (same ID, different data) ✅
+- [x] Log duplicate attempts for monitoring ✅
+
+### 5.4 Session Derivation ✅
+- [x] Create function to derive sessions from activities:
+  - Group activities by agent and day ✅
+  - Calculate end_time_utc (next activity start or day end) ✅
+  - Mark incomplete sessions (no end time) ✅
+  - Calculate duration ✅
+
+### 5.5 Scheduled Ingestion Job ✅
+- [x] Create API route or serverless function for ingestion ✅
+- [x] Set up cron job to run every 5-10 minutes ✅
+- [x] Add logging and monitoring ✅
+- [x] Implement idempotency (safe to run multiple times) ✅
+
+### 5.6 Backfill Capability ✅
+- [x] Create script/endpoint to backfill historical data ✅
+- [x] Support date range parameters ✅
+- [x] Handle large backfills efficiently (batch processing) ✅
+- [x] Add progress tracking ✅
+
+---
+
+## Phase 6: Aggregation & Reporting Logic (Week 4-5) ✅
+
+### 6.1 Aggregation Functions ✅
+Create functions to calculate:
+- [x] Hours per agent over time period ✅
+- [x] Hours per activity over time period ✅
+- [x] Hours per client group over time period ✅
+- [x] Combined aggregations (agent + activity, group + activity, etc.) ✅
+
+### 6.2 Weekly Report Generation ✅
+- [x] Create function to generate weekly summaries ✅
+- [x] Aggregate by agent, activity, and client group ✅
+- [x] **For each client email, aggregate across ALL associated groups** (via `client_group_mappings`) ✅
+- [x] Identify incomplete sessions ✅
+- [x] Format data for email digest ✅
+- [x] Handle clients with multiple groups (combine data from all groups) ✅
+
+### 6.3 Clock-in/Clock-out Detection ✅
+- [x] Create function to identify first/last activity per day per agent ✅
+- [x] Handle timezone conversions for display ✅
+- [x] Account for day boundaries in agent's timezone ✅
+
+### 6.4 Query Optimization ✅
+- [x] Optimize aggregation queries for performance ✅
+- [x] Add database views if needed ✅
+- [x] Implement pagination for large result sets ✅
+- [x] Add caching where appropriate (can be added in Phase 9) ✅
+
+---
+
+## Phase 7: Internal UI Development (Week 5-6) ✅
+
+### 7.1 UI Framework Setup ✅
+- [x] Set up UI component library (Tailwind CSS with Flexscale brand colors) ✅
+- [x] Create layout components (Navbar, Layout) ✅
+- [x] Set up routing (Next.js App Router) ✅
+
+### 7.2 Dashboard Page ✅
+- [x] Create main dashboard view ✅
+- [x] Display summary statistics:
+  - Total agents ✅
+  - Total hours this week ✅
+  - Active client groups ✅
+  - Recent activities ✅
+
+### 7.3 Client Group View ✅
+- [x] Create page to view data by client group ✅
+- [x] Show agents in group ✅
+- [x] Display hours per agent ✅
+- [x] Display activity breakdown ✅
+- [x] Add date range filters ✅
+
+### 7.4 Agent View ✅
+- [x] Create page to view individual agent data ✅
+- [x] Show daily activity timeline ✅
+- [x] Display hours per activity ✅
+- [x] Show clock-in/clock-out times ✅
+- [x] Highlight incomplete sessions ✅
+- [x] Add date range filters ✅
+
+### 7.5 Activity List View ✅
+- [x] Create page to view all activities ✅
+- [x] Add filtering (by date range) ✅
+- [x] Add pagination ✅
+- [x] Show activity statistics ✅
+
+### 7.6 Data Visualization ✅
+- [x] Add charts for hours over time (using Recharts) ✅
+- [x] Create pie charts for activity distribution ✅
+- [x] Add bar charts for agent comparisons ✅
+
+---
+
+## Phase 8: Email Digest System (Week 6-7)
+
+### 8.1 Airtable Integration
+- [x] Create function to fetch client emails from Airtable ✅
+- [x] Map client emails to Jibble groups (supports multiple groups per client) ✅
+- [ ] Handle updates to client list
+- [ ] Sync client records to `clients` table
+- [ ] Sync group mappings to `client_group_mappings` table
+
+### 8.2 Email Template Design
+- [ ] Design weekly digest email template
+- [ ] Include:
+  - Summary statistics
+  - Hours per agent
+  - Hours per activity
+  - Incomplete sessions (Notes section)
+  - Time period covered
+
+### 8.3 Email Service Integration
+- [x] Choose email service: **Resend (already chosen in Phase 1.4)**
+- [ ] Integrate Resend API/SDK into application
+- [ ] Create email sending function
+- [ ] Add error handling and retry logic
+- [ ] Implement unsubscribe handling (if needed)
+
+### 8.4 Weekly Email Job
+- [ ] Create scheduled job to generate and send weekly emails
+- [ ] Run on specified day/time (e.g., Monday morning)
+- [ ] Generate report for previous week
+- [ ] Send to all clients from Airtable
+- [ ] Log email sends and failures
+
+---
+
+## Phase 9: Testing & Quality Assurance (Week 7-8)
+
+### 9.1 Unit Tests
+- [ ] Write tests for:
+  - Data normalization functions
+  - Deduplication logic
+  - Session derivation
+  - Aggregation calculations
+  - Timezone conversions
+
+### 9.2 Integration Tests
+- [ ] Test API integrations (Jibble, Airtable, Email)
+- [ ] Test database operations
+- [ ] Test cron job execution
+
+### 9.3 End-to-End Testing
+- [ ] Test full ingestion flow
+- [ ] Test UI workflows
+- [ ] Test email generation and sending
+
+### 9.4 Error Handling & Monitoring
+- [ ] Add comprehensive error logging
+- [ ] Set up error monitoring (Sentry, LogRocket, or similar)
+- [ ] Create alerts for failed ingestion jobs
+- [ ] Add health check endpoints
+
+### 9.5 Performance Testing
+- [ ] Test with large datasets (simulate millions of rows)
+- [ ] Optimize slow queries
+- [ ] Test pagination performance
+- [ ] Verify indexes are being used
+
+---
+
+## Phase 10: Deployment & Documentation (Week 8)
+
+### 10.1 Production Deployment
+- [ ] Deploy to Vercel production
+- [ ] Set up production Supabase instance
+- [ ] Configure production environment variables
+- [ ] Test production deployment
+
+### 10.2 Database Migration to Production
+- [ ] Run migrations on production database
+- [ ] Verify schema is correct
+- [ ] Set up database backups
+
+### 10.3 Monitoring & Alerts
+- [ ] Set up application monitoring
+- [ ] Configure alerts for:
+  - Failed ingestion jobs
+  - API errors
+  - Database connection issues
+  - Email sending failures
+
+### 10.4 Documentation
+- [ ] Write API documentation
+- [ ] Create user guide for internal UI
+- [ ] Document deployment process
+- [ ] Create runbook for common issues
+- [ ] Document environment variables
+
+### 10.5 Handoff & Training
+- [ ] Train team on using the system
+- [ ] Document maintenance procedures
+- [ ] Create troubleshooting guide
+
+---
+
+## Technical Decisions Needed
+
+### Cron Jobs
+**✅ Decision: Vercel Cron Jobs (Chosen)**
+- Native integration with Vercel
+- Free tier available
+- Easy configuration via `vercel.json`
+- Will be configured in Phase 1.5
+
+### Email Service
+**✅ Decision: Resend (Chosen & Configured)**
+- Developer-friendly API
+- Good free tier
+- Modern features
+- Good documentation
+- MCP server configured and ready to use
+- API key set up in MCP configuration
+
+### Database ORM/Query Builder
+- Consider using Supabase client directly or Prisma
+- Supabase client is simpler for Supabase-specific features
+- Prisma offers better type safety and migrations
+
+### UI Framework
+- Next.js with App Router (recommended for Vercel)
+- Consider shadcn/ui for components
+- Tailwind CSS for styling
+
+---
+
+## Risk Mitigation
+
+1. **Jibble API Changes**
+   - Store raw payloads for reprocessing
+   - Version API client code
+   - Monitor API deprecation notices
+
+2. **Data Volume**
+   - Implement pagination early
+   - Use database indexes effectively
+   - Consider archiving old data if needed
+
+3. **Timezone Issues**
+   - Always store UTC, convert for display
+   - Test with multiple timezones
+   - Document timezone handling
+
+4. **Duplicate Data**
+   - Unique constraint on `jibble_activity_id`
+   - Idempotent ingestion process
+   - Log duplicate attempts
+
+5. **API Rate Limits**
+   - Implement exponential backoff
+   - Cache where possible
+   - Monitor API usage
+
+---
+
+## Success Criteria
+
+- [ ] Successfully ingests data from Jibble every 5-10 minutes
+- [ ] Zero duplicate activities in database
+- [ ] All raw payloads stored for auditing
+- [ ] Aggregations calculate correctly
+- [ ] Incomplete sessions identified and reported
+- [ ] Internal UI displays data accurately
+- [ ] Weekly emails sent successfully to all clients
+- [ ] System handles millions of rows efficiently
+- [ ] All timezone conversions accurate
+
+---
+
+## Timeline Summary
+
+- **Week 1**: Setup, Infrastructure, Database Schema
+- **Week 2**: Data Models, Jibble Integration
+- **Week 3-4**: Ingestion Pipeline
+- **Week 4-5**: Aggregation & Reporting
+- **Week 5-6**: Internal UI
+- **Week 6-7**: Email Digest System
+- **Week 7-8**: Testing & QA
+- **Week 8**: Deployment & Documentation
+
+**Total Estimated Time: 8 weeks**
+
+---
+
+## Next Steps
+
+1. ✅ Project repository set up and connected
+2. ✅ Supabase project created
+3. ✅ Resend MCP server configured
+4. ✅ Technical decisions made (Vercel Cron Jobs, Resend)
+5. **Next**: Set up Next.js/React project structure (Phase 1.1)
+6. **Next**: Configure Supabase connection and environment variables (Phase 1.2)
+7. **Next**: Connect repository to Vercel (Phase 1.3)
+
