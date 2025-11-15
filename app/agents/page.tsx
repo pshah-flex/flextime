@@ -20,6 +20,7 @@ export default function AgentsPage() {
   const [clockInOut, setClockInOut] = useState<any[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
+  const [searchQuery, setSearchQuery] = useState<string>('');
 
   useEffect(() => {
     loadAgents();
@@ -60,6 +61,14 @@ export default function AgentsPage() {
     setStartDate(newStartDate);
     setEndDate(newEndDate);
   };
+
+  // Filter agents based on search query (by name or email)
+  const filteredAgents = agents.filter(agent => {
+    const query = searchQuery.toLowerCase();
+    const name = (agent.agent_name || '').toLowerCase();
+    const email = (agent.agent_email || '').toLowerCase();
+    return name.includes(query) || email.includes(query);
+  });
 
   const selectedAgentData = agents.find(a => a.agent_id === selectedAgent);
 
@@ -111,8 +120,21 @@ export default function AgentsPage() {
         <div className="lg:col-span-1">
           <div className="bg-white rounded-lg shadow-md p-6 border border-gray-200">
             <h2 className="text-xl font-bold text-gray-900 mb-4">All Agents</h2>
+            
+            {/* Search Input */}
+            <div className="mb-4">
+              <input
+                type="text"
+                placeholder="Search agents by name or email..."
+                value={searchQuery}
+                onChange={(e) => setSearchQuery(e.target.value)}
+                className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary focus:border-transparent"
+              />
+            </div>
+
             <div className="space-y-2 max-h-[600px] overflow-y-auto">
-              {agents.map((agent) => (
+              {filteredAgents.length > 0 ? (
+                filteredAgents.map((agent) => (
                 <button
                   key={agent.agent_id}
                   onClick={() => setSelectedAgent(agent.agent_id)}
@@ -134,7 +156,24 @@ export default function AgentsPage() {
                     </p>
                   )}
                 </button>
-              ))}
+                ))
+              ) : (
+                <div className="text-center py-8 text-gray-500">
+                  {searchQuery ? (
+                    <>
+                      <p>No agents found matching &quot;{searchQuery}&quot;</p>
+                      <button
+                        onClick={() => setSearchQuery('')}
+                        className="mt-2 text-primary hover:underline text-sm"
+                      >
+                        Clear search
+                      </button>
+                    </>
+                  ) : (
+                    <p>No agents available</p>
+                  )}
+                </div>
+              )}
             </div>
           </div>
         </div>

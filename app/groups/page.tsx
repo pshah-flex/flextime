@@ -25,6 +25,7 @@ export default function ClientGroupsPage() {
   const [groupActivities, setGroupActivities] = useState<any[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
+  const [searchQuery, setSearchQuery] = useState<string>('');
 
   useEffect(() => {
     loadGroups();
@@ -70,6 +71,11 @@ export default function ClientGroupsPage() {
     setEndDate(newEndDate);
   };
 
+  // Filter groups based on search query
+  const filteredGroups = groups.filter(group =>
+    group.group_name.toLowerCase().includes(searchQuery.toLowerCase())
+  );
+
   const selectedGroupData = groups.find(g => g.client_group_id === selectedGroup);
 
   if (loading) {
@@ -111,8 +117,21 @@ export default function ClientGroupsPage() {
         <div className="lg:col-span-1">
           <div className="bg-white rounded-lg shadow-md p-6 border border-gray-200">
             <h2 className="text-xl font-bold text-gray-900 mb-4">All Groups</h2>
+            
+            {/* Search Input */}
+            <div className="mb-4">
+              <input
+                type="text"
+                placeholder="Search clients..."
+                value={searchQuery}
+                onChange={(e) => setSearchQuery(e.target.value)}
+                className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary focus:border-transparent"
+              />
+            </div>
+
             <div className="space-y-2 max-h-[600px] overflow-y-auto">
-              {groups.map((group) => (
+              {filteredGroups.length > 0 ? (
+                filteredGroups.map((group) => (
                 <button
                   key={group.client_group_id}
                   onClick={() => setSelectedGroup(group.client_group_id)}
@@ -129,7 +148,24 @@ export default function ClientGroupsPage() {
                     {formatHoursAsHrsMin(group.total_hours)} • {group.agent_count} agents
                   </p>
                 </button>
-              ))}
+                ))
+              ) : (
+                <div className="text-center py-8 text-gray-500">
+                  {searchQuery ? (
+                    <>
+                      <p>No clients found matching &quot;{searchQuery}&quot;</p>
+                      <button
+                        onClick={() => setSearchQuery('')}
+                        className="mt-2 text-primary hover:underline text-sm"
+                      >
+                        Clear search
+                      </button>
+                    </>
+                  ) : (
+                    <p>No clients available</p>
+                  )}
+                </div>
+              )}
             </div>
           </div>
         </div>
