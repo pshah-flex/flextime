@@ -88,7 +88,7 @@ export default function AgentsPage() {
       <div className="mb-8">
         <h1 className="text-3xl font-bold text-gray-900 mb-2">Agents</h1>
         <p className="text-gray-600">
-          View individual agent time tracking data from {format(new Date(startDate), 'MMM d')} to {format(new Date(endDate), 'MMM d, yyyy')}
+          View individual agent time tracking data
         </p>
       </div>
 

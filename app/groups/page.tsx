@@ -86,9 +86,9 @@ export default function ClientGroupsPage() {
   return (
     <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
       <div className="mb-8">
-        <h1 className="text-3xl font-bold text-gray-900 mb-2">Client Groups</h1>
+        <h1 className="text-3xl font-bold text-gray-900 mb-2">Clients</h1>
         <p className="text-gray-600">
-          View time tracking data by client group from {format(new Date(startDate), 'MMM d')} to {format(new Date(endDate), 'MMM d, yyyy')}
+          View time tracking data by client
         </p>
       </div>
 

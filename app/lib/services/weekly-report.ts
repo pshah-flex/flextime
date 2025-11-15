@@ -307,8 +307,7 @@ export function formatWeeklyReportForEmail(report: WeeklyReport): string {
   lines.push(`Summary:`);
   lines.push(`  Total Hours: ${formatHoursAsHrsMin(report.summary.total_hours)}`);
   lines.push(`  Total Sessions: ${report.summary.total_sessions}`);
-  lines.push(`  Unique Agents: ${report.summary.unique_agents}`);
-  lines.push(`  Unique Groups: ${report.summary.unique_groups}`);
+  lines.push(`  Agents: ${report.summary.unique_agents}`);
   if (report.summary.incomplete_sessions > 0) {
     lines.push(`  ⚠️  Incomplete Sessions: ${report.summary.incomplete_sessions}`);
   }
@@ -326,9 +325,9 @@ export function formatWeeklyReportForEmail(report: WeeklyReport): string {
     lines.push(``);
   }
 
-  // Hours by Activity
+  // Hours by Day
   if (report.hours_by_activity.length > 0) {
-    lines.push(`Hours by Activity:`);
+    lines.push(`Hours by Day:`);
     for (const activity of report.hours_by_activity) {
       const activityName = activity.activity_name || 'Unspecified';
       lines.push(`  ${activityName}: ${formatHoursAsHrsMin(activity.total_hours)} (${activity.session_count} sessions)`);
