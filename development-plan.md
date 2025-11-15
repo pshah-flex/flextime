@@ -366,34 +366,35 @@ Create functions to calculate:
 - [x] Create function to fetch client emails from Airtable ✅
 - [x] Map client emails to Jibble groups (supports multiple groups per client) ✅
 - [x] Handle comma-separated Group IDs in Airtable "Jibble Group ID" field ✅
-- [ ] Handle updates to client list
-- [ ] Sync client records to `clients` table
-- [ ] Sync group mappings to `client_group_mappings` table
+- [x] Handle updates to client list ✅
+- [x] Sync client records to `clients` table ✅
+- [x] Sync group mappings to `client_group_mappings` table ✅
 
 **Note**: In Airtable, when a client has multiple Jibble groups, all Group IDs are stored in the "Jibble Group ID" field separated by commas. The integration handles this format automatically.
 
 ### 8.2 Email Template Design
-- [ ] Design weekly digest email template
-- [ ] Include:
+- [x] Design weekly digest email template ✅
+- [x] Include: ✅
   - Summary statistics
   - Hours per agent
   - Hours per activity
   - Incomplete sessions (Notes section)
   - Time period covered
+- [x] Apply Flexscale brand colors (#163C3C, #ACC9A6, #EBFDCF, #FFFFFF) ✅
 
 ### 8.3 Email Service Integration
-- [x] Choose email service: **Resend (already chosen in Phase 1.4)**
-- [ ] Integrate Resend API/SDK into application
-- [ ] Create email sending function
-- [ ] Add error handling and retry logic
-- [ ] Implement unsubscribe handling (if needed)
+- [x] Choose email service: **Resend (already chosen in Phase 1.4)** ✅
+- [x] Integrate Resend API/SDK into application ✅
+- [x] Create email sending function ✅
+- [x] Add error handling and retry logic ✅
+- [ ] Implement unsubscribe handling (if needed) - Deferred (not in MVP requirements)
 
 ### 8.4 Weekly Email Job
-- [ ] Create scheduled job to generate and send weekly emails
-- [ ] Run on specified day/time (e.g., Monday morning)
-- [ ] Generate report for previous week
-- [ ] Send to all clients from Airtable
-- [ ] Log email sends and failures
+- [x] Create scheduled job to generate and send weekly emails ✅
+- [x] Run on specified day/time (Monday at 9 AM UTC) ✅
+- [x] Generate report for previous week ✅
+- [x] Send to all clients from Airtable ✅
+- [x] Log email sends and failures ✅
 
 ---
 

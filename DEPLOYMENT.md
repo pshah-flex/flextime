@@ -68,11 +68,12 @@ Add the following environment variables in Vercel Dashboard:
 | `AIRTABLE_PERSONAL_ACCESS_TOKEN` | `YOUR_AIRTABLE_PERSONAL_ACCESS_TOKEN` (see Airtable Dashboard) |
 | `AIRTABLE_BASE_ID` | `appvhgZiUha2A1OQg` |
 
-#### Resend (Optional - for Phase 8)
+#### Resend (Required for Phase 8 - Email Digest)
 
 | Variable Name | Value |
 |--------------|-------|
 | `RESEND_API_KEY` | `re_i7s2UZLP_L6LLe2Zx6oyUEeB1qXB2ZVD8` |
+| `RESEND_FROM_EMAIL` | `noreply@flexscale.com` (Optional - defaults to `noreply@flexscale.com`) |
 
 #### Vercel Cron (Optional - for authentication)
 
@@ -96,8 +97,11 @@ Generate a secure random string (you can use: `openssl rand -base64 32` or any p
 - `AIRTABLE_PERSONAL_ACCESS_TOKEN` = (Get from Airtable Dashboard → Settings → Developer → Personal Access Tokens)
 - `AIRTABLE_BASE_ID` = `appvhgZiUha2A1OQg`
 
-✅ Optional (for Phase 8):
+✅ Required for Phase 8 (Email Digest):
 - `RESEND_API_KEY` = `re_i7s2UZLP_L6LLe2Zx6oyUEeB1qXB2ZVD8`
+- `RESEND_FROM_EMAIL` = `noreply@flexscale.com` (Optional - defaults to `noreply@flexscale.com`)
+
+✅ Optional (for Cron authentication):
 - `CRON_SECRET` = `+ZNSzfxczVba69V8vnz4QMfMgvqyLD7x9tnci3MZ0fg=` (or generate your own with `openssl rand -base64 32`)
 
 **⚠️ Important**: The `SUPABASE_SERVICE_ROLE_KEY` is required for database write operations (ingestion). It's included in the list above.
@@ -120,16 +124,25 @@ After deployment completes:
 
 ### 5. Cron Jobs
 
-The cron job is configured in `vercel.json` to run every 10 minutes:
+Cron jobs are configured in `vercel.json`:
 
 ```json
 {
-  "crons": [{
-    "path": "/api/cron/ingest",
-    "schedule": "*/10 * * * *"
-  }]
+  "crons": [
+    {
+      "path": "/api/cron/ingest",
+      "schedule": "*/10 * * * *"
+    },
+    {
+      "path": "/api/cron/weekly-email",
+      "schedule": "0 9 * * 1"
+    }
+  ]
 }
 ```
+
+- **Data Ingestion**: Runs every 10 minutes to sync new time entries from Jibble
+- **Weekly Email Digest**: Runs every Monday at 9 AM UTC to send weekly reports to clients
 
 **Note**: Cron jobs only work on Vercel Pro plan or higher. For free tier, you'll need to:
 - Use Vercel Cron (available on Pro plan)
