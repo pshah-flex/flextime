@@ -196,68 +196,44 @@ async function main() {
               is_complete: s.is_complete,
             }));
             
-            // Upsert sessions to handle duplicates (using unique constraint on agent_id, client_group_id, start_time_utc)
+            // Insert sessions with duplicate handling (using unique constraint on agent_id, client_group_id, start_time_utc)
             const supabaseAdmin = supabase.getSupabaseAdmin();
             let inserted = 0;
-            let updated = 0;
+            let skipped = 0;
             let errors = 0;
             
-            // Try to upsert all at once first
-            const { error: batchError } = await supabaseAdmin
-              .from('activity_sessions')
-              .upsert(sessionsToInsert, {
-                onConflict: 'agent_id,client_group_id,start_time_utc',
-                ignoreDuplicates: false,
-              });
-            
-            if (batchError) {
-              // If batch upsert fails (e.g., unique constraint not yet created), try one by one
-              console.log(`   ⚠️  Batch upsert failed, trying individual upserts: ${batchError.message}`);
-              for (const session of sessionsToInsert) {
-                try {
-                  const { error: upsertError } = await supabaseAdmin
-                    .from('activity_sessions')
-                    .upsert(session, {
-                      onConflict: 'agent_id,client_group_id,start_time_utc',
-                      ignoreDuplicates: false,
-                    });
-                  if (upsertError) {
-                    // Check if it's a duplicate (unique constraint violation)
-                    if (upsertError.code === '23505' || upsertError.message.includes('duplicate')) {
-                      // Skip duplicates
-                      updated++;
-                      continue;
-                    }
-                    // If constraint doesn't exist, try insert and skip on duplicate
-                    const { error: insertError } = await supabaseAdmin
-                      .from('activity_sessions')
-                      .insert(session)
-                      .select()
-                      .single();
-                    if (insertError) {
-                      if (insertError.code === '23505' || insertError.message.includes('duplicate')) {
-                        updated++;
-                        continue;
-                      }
-                      throw insertError;
-                    }
+            // Insert one by one to handle duplicates gracefully
+            // Supabase upsert doesn't support composite unique constraints directly
+            for (const session of sessionsToInsert) {
+              try {
+                const { error: insertError } = await supabaseAdmin
+                  .from('activity_sessions')
+                  .insert(session)
+                  .select()
+                  .single();
+                
+                if (insertError) {
+                  // Check if it's a duplicate (unique constraint violation)
+                  if (insertError.code === '23505' || insertError.message?.includes('duplicate') || insertError.message?.includes('unique')) {
+                    // Skip duplicates silently
+                    skipped++;
+                    continue;
                   }
-                  inserted++;
-                } catch (err: any) {
-                  // Skip duplicates, count other errors
-                  if (err.code === '23505' || err.message?.includes('duplicate')) {
-                    updated++;
-                  } else {
-                    errors++;
-                    console.log(`      ⚠️  Error upserting session: ${err.message}`);
-                  }
+                  throw insertError;
+                }
+                inserted++;
+              } catch (err: any) {
+                // Handle duplicates
+                if (err.code === '23505' || err.message?.includes('duplicate') || err.message?.includes('unique')) {
+                  skipped++;
+                } else {
+                  errors++;
+                  console.log(`      ⚠️  Error inserting session: ${err.message}`);
                 }
               }
-            } else {
-              inserted = sessionsToInsert.length;
             }
             
-            console.log(`   ✅ Derived ${sessions.length} sessions, ${inserted} inserted, ${updated} updated, ${errors} errors\n`);
+            console.log(`   ✅ Derived ${sessions.length} sessions, ${inserted} inserted, ${skipped} skipped (duplicates), ${errors} errors\n`);
           }
         }
       } else {

@@ -6,6 +6,7 @@ import DateRangePicker from '../components/DateRangePicker';
 import { format } from 'date-fns';
 import { getHoursByClientGroup, getHoursByAgent, getHoursByActivity } from '../lib/api-client';
 import { BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, Legend, ResponsiveContainer, PieChart, Pie, Cell } from 'recharts';
+import { formatHoursAsHrsMin } from '../lib/utils/format-hours';
 
 const COLORS = ['#163C3C', '#ACC9A6', '#EBFDCF', '#1F4F4F', '#0F2A2A'];
 

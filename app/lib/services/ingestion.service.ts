@@ -115,58 +115,43 @@ export async function runIngestion(options: IngestionOptions = {}): Promise<Inge
             is_complete: s.is_complete,
           }));
 
-          // Batch upsert sessions (using agent_id, client_group_id, start_time_utc as unique key)
+          // Batch insert sessions with duplicate handling (using unique constraint on agent_id, client_group_id, start_time_utc)
           const batchSize = 100;
           let inserted = 0;
-          let updated = 0;
+          let skipped = 0;
           let errors = 0;
 
           for (let i = 0; i < sessionsToInsert.length; i += batchSize) {
             const batch = sessionsToInsert.slice(i, i + batchSize);
-            try {
-              const { error } = await supabase
-                .from('activity_sessions')
-                .upsert(batch, {
-                  onConflict: 'agent_id,client_group_id,start_time_utc',
-                  ignoreDuplicates: false,
-                });
-              
-              if (error) throw error;
-              // Count as inserted/updated based on whether conflict occurred
-              // We can't distinguish between insert and update with upsert, so count all as inserted
-              inserted += batch.length;
-            } catch (error: any) {
-              // If unique constraint doesn't exist yet, fall back to individual inserts
-              if (error.code === '42704' || error.message?.includes('conflict')) {
-                // Try inserting one by one to handle duplicates gracefully
-                for (const session of batch) {
-                  try {
-                    const { error: insertError } = await supabase
-                      .from('activity_sessions')
-                      .insert(session)
-                      .select()
-                      .single();
-                    if (insertError) {
-                      // Skip duplicates
-                      if (insertError.code === '23505' || insertError.message?.includes('duplicate')) {
-                        updated++;
-                        continue;
-                      }
-                      throw insertError;
-                    }
-                    inserted++;
-                  } catch (err: any) {
-                    if (err.code === '23505' || err.message?.includes('duplicate')) {
-                      updated++;
-                    } else {
-                      errors++;
-                      console.error(`   ⚠️  Error inserting session: ${err.message}`);
-                    }
+            
+            // Try inserting one by one to handle duplicates gracefully
+            // Supabase upsert doesn't support composite unique constraints directly
+            for (const session of batch) {
+              try {
+                const { error: insertError } = await supabase
+                  .from('activity_sessions')
+                  .insert(session)
+                  .select()
+                  .single();
+                
+                if (insertError) {
+                  // Check if it's a duplicate (unique constraint violation)
+                  if (insertError.code === '23505' || insertError.message?.includes('duplicate') || insertError.message?.includes('unique')) {
+                    // Skip duplicates silently
+                    skipped++;
+                    continue;
                   }
+                  throw insertError;
                 }
-              } else {
-                console.error(`   ❌ Error upserting session batch: ${error.message}`);
-                errors += batch.length;
+                inserted++;
+              } catch (err: any) {
+                // Handle duplicates
+                if (err.code === '23505' || err.message?.includes('duplicate') || err.message?.includes('unique')) {
+                  skipped++;
+                } else {
+                  errors++;
+                  console.error(`   ⚠️  Error inserting session: ${err.message}`);
+                }
               }
             }
           }
@@ -175,7 +160,7 @@ export async function runIngestion(options: IngestionOptions = {}): Promise<Inge
             derived: sessions.length,
             errors,
           };
-          console.log(`   ✅ Derived ${sessions.length} sessions, ${inserted} inserted, ${errors} errors`);
+          console.log(`   ✅ Derived ${sessions.length} sessions, ${inserted} inserted, ${skipped} skipped (duplicates), ${errors} errors`);
         } else {
           result.sessions = {
             derived: sessions.length,
