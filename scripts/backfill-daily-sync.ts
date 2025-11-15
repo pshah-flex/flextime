@@ -7,13 +7,15 @@
 
 import { config } from 'dotenv';
 import { resolve } from 'path';
-import { runDailySync } from '../app/lib/services/daily-sync.service';
-import { getPacificDate, getPreviousDayPacific } from '../app/lib/utils/timezone';
 
-// Load environment variables from .env.local
+// Load environment variables from .env.local BEFORE any other imports
 config({ path: resolve(process.cwd(), '.env.local'), override: true });
 
 async function main() {
+  // Dynamic imports after env vars are loaded
+  const { runDailySync } = await import('../app/lib/services/daily-sync.service');
+  const { getPacificDate, getPreviousDayPacific } = await import('../app/lib/utils/timezone');
+  
   console.log('🔄 Starting Daily Sync Backfill\n');
   
   // Start date: November 1, 2025
