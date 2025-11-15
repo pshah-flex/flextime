@@ -41,7 +41,7 @@ Low - The system is functional, but the date range displayed may be off by one d
 
 ## UI Improvements
 
-### Search Functionality for Clients
+### Search Functionality for Clients ✅ COMPLETE
 
 **Request:** Add the ability to search for a Client (Group) on the Clients page.
 
@@ -68,9 +68,11 @@ Low - The system is functional, but the date range displayed may be off by one d
 **Priority:**
 Medium - Improves user experience when managing multiple clients
 
+**Status:** ✅ Completed - Search input added with case-insensitive partial matching, real-time filtering, and empty state handling.
+
 ---
 
-### Search Functionality for Agents
+### Search Functionality for Agents ✅ COMPLETE
 
 **Request:** Add the ability to search for an Agent on the Agents page.
 
@@ -98,9 +100,11 @@ Medium - Improves user experience when managing multiple clients
 **Priority:**
 Medium - Improves user experience when managing multiple agents
 
+**Status:** ✅ Completed - Search input added with case-insensitive partial matching by name or email, real-time filtering, and empty state handling.
+
 ---
 
-### Rename "Hours by Agent" to "Total Hours by Agent"
+### Rename "Hours by Agent" to "Total Hours by Agent" ✅ COMPLETE
 
 **Request:** Change the label "Hours by Agent" to "Total Hours by Agent" on the Clients page.
 
@@ -122,6 +126,8 @@ Medium - Improves user experience when managing multiple agents
 
 **Priority:**
 Low - Simple label change to improve clarity
+
+**Status:** ✅ Completed - Section heading updated from "Hours by Agent" to "Total Hours by Agent" on the Clients page.
 
 ---
 

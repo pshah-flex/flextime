@@ -203,7 +203,7 @@ export default function ClientGroupsPage() {
               {/* Hours by Agent Chart */}
               {groupAgents.length > 0 && (
                 <div className="bg-white rounded-lg shadow-md p-6 border border-gray-200">
-                  <h3 className="text-xl font-bold text-gray-900 mb-4">Hours by Agent</h3>
+                  <h3 className="text-xl font-bold text-gray-900 mb-4">Total Hours by Agent</h3>
                   <ResponsiveContainer width="100%" height={300}>
                     <BarChart data={groupAgents.slice(0, 10)}>
                       <CartesianGrid strokeDasharray="3 3" />
