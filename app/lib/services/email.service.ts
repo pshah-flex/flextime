@@ -114,20 +114,20 @@ function generateWeeklyReportHTML(report: WeeklyReport): string {
               </div>
               ` : ''}
 
-              ${report.hours_by_activity.length > 0 ? `
+              ${report.hours_by_day && report.hours_by_day.length > 0 ? `
               <!-- Hours by Day -->
               <div style="margin-bottom: 30px;">
                 <h2 style="margin: 0 0 15px 0; color: ${PRIMARY_COLOR}; font-size: 18px; font-weight: bold; border-bottom: 2px solid ${SECONDARY_COLOR}; padding-bottom: 10px;">Hours by Day</h2>
                 <table role="presentation" style="width: 100%; border-collapse: collapse;">
-                  ${report.hours_by_activity.map(activity => `
+                  ${report.hours_by_day.map(day => `
                   <tr style="border-bottom: 1px solid #e5e5e5;">
                     <td style="padding: 12px 0; color: #333; font-size: 14px;">
-                      <strong>${activity.activity_name || 'Unspecified Activity'}</strong>
+                      <strong>${day.date_formatted}</strong>
                       <br>
-                      <span style="color: #666; font-size: 12px;">${activity.session_count} session(s)</span>
+                      <span style="color: #666; font-size: 12px;">${day.session_count} session(s)</span>
                     </td>
                     <td style="padding: 12px 0; color: ${PRIMARY_COLOR}; font-size: 16px; font-weight: bold; text-align: right;">
-                      ${formatHoursAsHrsMin(activity.total_hours)}
+                      ${formatHoursAsHrsMin(day.total_hours)}
                     </td>
                   </tr>
                   `).join('')}
@@ -205,11 +205,10 @@ function generateWeeklyReportText(report: WeeklyReport): string {
   }
 
   // Hours by Day
-  if (report.hours_by_activity.length > 0) {
+  if (report.hours_by_day && report.hours_by_day.length > 0) {
     lines.push(`Hours by Day:`);
-    for (const activity of report.hours_by_activity) {
-      const activityName = activity.activity_name || 'Unspecified';
-      lines.push(`  ${activityName}: ${formatHoursAsHrsMin(activity.total_hours)} (${activity.session_count} sessions)`);
+    for (const day of report.hours_by_day) {
+      lines.push(`  ${day.date_formatted}: ${formatHoursAsHrsMin(day.total_hours)} (${day.session_count} sessions)`);
     }
     lines.push(``);
   }

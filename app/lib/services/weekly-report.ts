@@ -7,12 +7,14 @@
 import { getSupabaseAdmin } from '../supabase';
 import { 
   getHoursByAgent, 
-  getHoursByActivity, 
+  getHoursByActivity,
+  getHoursByDay,
   getHoursByClientGroup,
   getSummaryStats,
   type AggregationOptions,
   type HoursByAgent,
   type HoursByActivity,
+  type HoursByDay,
   type HoursByClientGroup,
 } from './aggregations';
 import { getGroupsForClient } from '../airtable';
@@ -40,6 +42,7 @@ export interface WeeklyReport {
   };
   hours_by_agent: HoursByAgent[];
   hours_by_activity: HoursByActivity[];
+  hours_by_day: HoursByDay[];
   hours_by_group: HoursByClientGroup[];
   incomplete_sessions_detail: IncompleteSessionDetail[];
 }
@@ -190,10 +193,11 @@ export async function generateWeeklyReportForClient(
   };
 
   // Get all aggregations
-  const [summary, hoursByAgent, hoursByActivity, hoursByGroup, incompleteSessions] = await Promise.all([
+  const [summary, hoursByAgent, hoursByActivity, hoursByDay, hoursByGroup, incompleteSessions] = await Promise.all([
     getSummaryStats(aggOptions),
     getHoursByAgent(aggOptions),
     getHoursByActivity(aggOptions),
+    getHoursByDay(aggOptions),
     getHoursByClientGroup(aggOptions),
     getIncompleteSessionsForClient(clientGroupIds, reportOptions.startDate, reportOptions.endDate),
   ]);
@@ -206,6 +210,7 @@ export async function generateWeeklyReportForClient(
     summary,
     hours_by_agent: hoursByAgent,
     hours_by_activity: hoursByActivity,
+    hours_by_day: hoursByDay,
     hours_by_group: hoursByGroup,
     incomplete_sessions_detail: incompleteSessions,
   };
@@ -326,11 +331,10 @@ export function formatWeeklyReportForEmail(report: WeeklyReport): string {
   }
 
   // Hours by Day
-  if (report.hours_by_activity.length > 0) {
+  if (report.hours_by_day && report.hours_by_day.length > 0) {
     lines.push(`Hours by Day:`);
-    for (const activity of report.hours_by_activity) {
-      const activityName = activity.activity_name || 'Unspecified';
-      lines.push(`  ${activityName}: ${formatHoursAsHrsMin(activity.total_hours)} (${activity.session_count} sessions)`);
+    for (const day of report.hours_by_day) {
+      lines.push(`  ${day.date_formatted}: ${formatHoursAsHrsMin(day.total_hours)} (${day.session_count} sessions)`);
     }
     lines.push(``);
   }

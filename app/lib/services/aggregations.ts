@@ -31,6 +31,14 @@ export interface HoursByActivity {
   session_count: number;
 }
 
+export interface HoursByDay {
+  date: string; // YYYY-MM-DD
+  date_formatted: string; // e.g., "Nov 2"
+  total_hours: number;
+  total_minutes: number;
+  session_count: number;
+}
+
 export interface HoursByClientGroup {
   client_group_id: string;
   group_name: string;
@@ -224,6 +232,76 @@ export async function getHoursByActivity(
   }
 
   return Array.from(activityMap.values()).sort((a, b) => b.total_hours - a.total_hours);
+}
+
+/**
+ * Calculate hours per day over time period
+ */
+export async function getHoursByDay(
+  options: AggregationOptions
+): Promise<HoursByDay[]> {
+  let query = supabase
+    .from('activity_sessions')
+    .select(`
+      start_time_utc,
+      duration_minutes
+    `)
+    .gte('start_time_utc', `${options.startDate}T00:00:00Z`)
+    .lte('start_time_utc', `${options.endDate}T23:59:59Z`);
+
+  if (options.agentIds && options.agentIds.length > 0) {
+    query = query.in('agent_id', options.agentIds);
+  }
+
+  if (options.clientGroupIds && options.clientGroupIds.length > 0) {
+    query = query.in('client_group_id', options.clientGroupIds);
+  }
+
+  if (options.includeIncomplete === false) {
+    query = query.eq('is_complete', true);
+  }
+
+  const { data, error } = await query;
+
+  if (error) {
+    throw new Error(`Failed to get hours by day: ${error.message}`);
+  }
+
+  // Aggregate by date
+  const dayMap = new Map<string, HoursByDay>();
+
+  for (const session of data || []) {
+    // Extract date from start_time_utc (YYYY-MM-DD)
+    const dateStr = session.start_time_utc.split('T')[0];
+    
+    if (!dayMap.has(dateStr)) {
+      // Format date as "Nov 2"
+      const date = new Date(dateStr + 'T00:00:00Z');
+      const dateFormatted = date.toLocaleDateString('en-US', { 
+        month: 'short', 
+        day: 'numeric' 
+      });
+      
+      dayMap.set(dateStr, {
+        date: dateStr,
+        date_formatted: dateFormatted,
+        total_hours: 0,
+        total_minutes: 0,
+        session_count: 0,
+      });
+    }
+
+    const stats = dayMap.get(dateStr)!;
+    stats.session_count++;
+
+    if (session.duration_minutes) {
+      stats.total_minutes += session.duration_minutes;
+      stats.total_hours = minutesToHours(stats.total_minutes);
+    }
+  }
+
+  // Sort by date (ascending)
+  return Array.from(dayMap.values()).sort((a, b) => a.date.localeCompare(b.date));
 }
 
 /**
